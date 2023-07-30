@@ -199,7 +199,7 @@ paginate: 5
 
 utterances:
   repo: "metishonora/metishonora"
-  issue_term: "pathname"
+  issue_term: "title"
   label: "💬"
   theme: "icy-dark"
   follow_site_theme: true
