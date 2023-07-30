@@ -179,7 +179,7 @@ defaults:
 # excerpt_size: 350
 
 # Pagination setting
-# paginate: 5
+paginate: 5
 
 # Disqus comments
 # disqus:
@@ -197,12 +197,12 @@ defaults:
 # See https://utteranc.es/
 # set follow_site_theme true to make utterances' theme follow the site's
 
-# utterances:
-#   repo: "owner/repo"
-#   issue_term: "title"
-#   label: "utterances comment"
-#   theme: "github-light"
-#   follow_site_theme: true
+utterances:
+  repo: "metishonora/metishonora"
+  issue_term: "pathname"
+  label: "💬"
+  theme: "icy-dark"
+  follow_site_theme: true
 
 # Build settings
 # highlighter: none
