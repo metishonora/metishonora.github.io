@@ -24,9 +24,9 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Your awesome title
-email: your-email@domain.com
-author: GitHub User
+title: tee READMD.md
+email: metishonora@icloud.com
+author: S G Kim
 
 # Copyright setting
 # You can use any html code, currently below placeholders are available:
@@ -40,21 +40,19 @@ author: GitHub User
 #   "Copyright (c) 2017-{currentYear} <a href="https://example.com">{author}</a>"
 #   "Copyright © 2017-2021 Foobar"
 #
-copyright: "Unpublished Work (cleft) 2017-{currentYear} {author}"
+copyright: "(cleft) {currentYear} {author}"
 
 description: >- # this means to ignore newlines until "baseurl:"
-  Write an awesome description for your new site here. You can edit this
-  line in _config.yml. It will appear in your document head meta (for
-  Google search results) and in your feed.xml site description.
+  개발하며 배운 것들을 기록하면서 공유하기 위한 README 파일.
 
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. https://example.com
-favicon: "" # the favicon for your site
+favicon: "/assets/favicon.ico" # the favicon for your site
 
 # Yat date format
 # refer to https://shopify.github.io/liquid/filters/date/ if you want to customize this
 yat:
-  date_format: "%b %d, %Y"
+  date_format: "%Y-%m-%d"
 
 # If you want more debug log, you can set true
 # debug: false
@@ -66,14 +64,14 @@ yat:
 # content_width: "920px"
 
 # Google analytics - GA4
-# google_analytics: [Measurement ID]
+google_analytics: [G-3ZE0SQ8DC0]
 # enableDNT: "false"
 
 # If you want to generate website sitemap, you can set true
 # sitemap: false
 
 # If you want to change site language, you can set lang option
-# lang: "en"  # default lang is en
+lang: "ko"  # default lang is en
 
 # Translate languges
 # langs refer to https://cloud.google.com/translate/docs/languages
@@ -108,7 +106,7 @@ yat:
 # spacegrey: #353535
 # snowwhite: #ffffff
 #
-# theme_color: snowwhite
+theme_color: spacegrey
 #
 # Custom color as below:
 # theme_color: "#882250"
@@ -122,7 +120,7 @@ yat:
 # brand_color: orangered
 #
 # Custom color as below:
-# brand_color: "#1a8e42"
+brand_color: "#5f85bb"
 
 # Night/Dark mode
 # Default mode is "auto", "auto" is for auto nightshift
@@ -155,11 +153,11 @@ yat:
 #   - about.md
 
 # Page default value
-# defaults:
-#   home:
-#     heading: "Your awesome heading"
-#     subheading: "Your awesome subheading"
-#     banner: "Your image url"
+defaults:
+  home:
+    heading: "tee README.md"
+    subheading: "to record my works"
+    banner: "/assets/images/banners/home.png"
 
 # Banner default settings
 # These banner settings are for global banner default, but you can also
