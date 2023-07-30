@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: Another test markdown
 subtitle: Each post also has a subtitle
@@ -35,8 +36,8 @@ $$ \rho {\rm{FOD}} = \sum\limits{\sigma ,i} {(\delta _1 - \delta _2 n_i^\sigma )
 {{ "here is a liquid filter." | capitalize }}
 
 {% capture test %}
-\`escape inline code\`  
-`inline code`  
+\`escape inline code\`
+`inline code`
 Here is a **capture block**.
 {% endcapture %}
 
@@ -48,9 +49,9 @@ Here is a **capture block**.
 :+1:
 :bolivia:
 
-\1. 21312  
-\2. 21312  
-\4. 4214  
+\1. 21312
+\2. 21312
+\4. 4214
 
 {% highlight python wl linenos %}
 import networkx as nx
@@ -123,7 +124,7 @@ Reload the Nginx:
 $ sudo nginx -s reload
 ```
 
-|:                        |:                  :|: $$O_3 + C_2H_2 \rightarrow $$         :|||:  $$O_3 + C_2H_4 \rightarrow $$ :|||:       :| 
+|:                        |:                  :|: $$O_3 + C_2H_2 \rightarrow $$         :|||:  $$O_3 + C_2H_4 \rightarrow $$ :|||:       :|
 |:  ^^ Method            :| ^^ $$\lambda^a$$  |    vdW |    TS |    cycloadd.           |  vdW  |  TS  |  cycloadd.           | ^^ MAE    |
 |-------------------------|-------------------|--------|-------|------------------------|-------|------|----------------------|-----------|
 | $$\lambda$$-tPBE        |   0.20            | -0.40  | 7.69  | -68.00                 | -1.86 | 4.87 | -57.57               | 1.29      |
@@ -312,4 +313,3 @@ Tips:
 The two markdown examples below both create this table.
 
 Use pipes `{% raw %}(`|`){% endraw %}` to delineate columns, and dashes to delineate the header row from the rest of the table.
-

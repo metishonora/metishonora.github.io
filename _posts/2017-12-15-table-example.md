@@ -1,4 +1,5 @@
 ---
+published: false
 layout: post
 title: Table example
 subtitle:
@@ -17,8 +18,8 @@ tags: [table]
 * Grouped table header rows or data rows
 
 ### Rowspan and Colspan
-^^ in a cell indicates it should be merged with the cell above.  
-This feature is contributed by [pmccloghrylaing](https://github.com/pmccloghrylaing).  
+^^ in a cell indicates it should be merged with the cell above.
+This feature is contributed by [pmccloghrylaing](https://github.com/pmccloghrylaing).
 
 | Stage | Direct Products | ATP Yields |
 | ----: | --------------: | ---------: |
@@ -33,7 +34,7 @@ This feature is contributed by [pmccloghrylaing](https://github.com/pmccloghryla
 [ Net ATP yields per hexose]
 
 ### Multiline
-A backslash at end to join cell contents with the following lines.  
+A backslash at end to join cell contents with the following lines.
 This feature is contributed by [Lucas-C](https://github.com/Lucas-C).
 
 |:     Easy Multiline     :|||
@@ -108,4 +109,3 @@ Table cell can be set alignment separately.
 |^^   C. Banana      ||   It's OK! ![example image][my-image]  |
 
 [my-image]: http://www.unexpected-vortices.com/sw/rippledoc/example-image.jpg "An exemplary image"
-
