@@ -3,3 +3,4 @@
 source "https://rubygems.org"
 gemspec
 gem 'jekyll-tagging-related_posts'
+gem 'jekyll-redirect-from'
