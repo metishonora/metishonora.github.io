@@ -216,3 +216,4 @@ plugins:
   - jekyll-sitemap
   - jekyll-paginate
   - jekyll-spaceship
+  - jekyll-tagging-related_posts
