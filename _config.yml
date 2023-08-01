@@ -65,7 +65,7 @@ yat:
 
 # Google analytics - GA4
 google_analytics: [G-3ZE0SQ8DC0]
-# enableDNT: "false"
+enableDNT: "true"
 
 # If you want to generate website sitemap, you can set true
 # sitemap: false
@@ -179,7 +179,11 @@ defaults:
 # excerpt_size: 350
 
 # Pagination setting
-paginate: 5
+# paginate: 5
+pagination:
+  enabled: true
+  collection: 'posts'
+  per_page: 5
 
 # Disqus comments
 # disqus:
@@ -214,7 +218,7 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
   - jekyll-sitemap
-  - jekyll-paginate
+  - jekyll-paginate-v2
   - jekyll-spaceship
   - jekyll-tagging-related_posts
   - jekyll-redirect-from
