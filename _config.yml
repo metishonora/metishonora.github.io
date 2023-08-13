@@ -46,7 +46,7 @@ description: >- # this means to ignore newlines until "baseurl:"
   개발하며 배운 것들을 기록하면서 공유하기 위한 README 파일.
 
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. https://example.com
+url: "https://metishonora.github.io" # the base hostname & protocol for your site, e.g. https://example.com
 favicon: "/assets/favicon.ico" # the favicon for your site
 
 # Yat date format
@@ -68,7 +68,7 @@ google_analytics: [G-3ZE0SQ8DC0]
 enableDNT: "true"
 
 # If you want to generate website sitemap, you can set true
-# sitemap: false
+sitemap: true
 
 # If you want to change site language, you can set lang option
 lang: "ko"  # default lang is en
