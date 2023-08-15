@@ -184,6 +184,10 @@ pagination:
   enabled: true
   collection: 'posts'
   per_page: 5
+  title: ':title'
+  sort_field: 'date'
+  sort_reverse: true
+  permalink: /page/:num/
 
 # Disqus comments
 # disqus:
