@@ -5,6 +5,7 @@ subtitle: 오늘의 치킨 프로젝트
 author: Metishonora
 categories: 프로젝트
 tags: [Java, Spring]
+published: false
 ---
 
 개발에 앞서, 처음 생각했던 서비스의 방향성을 시퀀스 다이어그램으로 표시해 보았다.

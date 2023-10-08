@@ -5,6 +5,7 @@ subtitle: 오늘의 치킨 프로젝트
 author: Metishonora
 categories: 프로젝트
 tags: [Java, Spring, TDD]
+published: false
 ---
 [이전 포스팅][linkToPrev]에 이어서, TDD를 활용하여 repository와 service 부분을 구현하였다.
 이번 글에서는 어떤 과정을 거쳐서 구현에 성공하였는지 차례대로 소개하겠다.
