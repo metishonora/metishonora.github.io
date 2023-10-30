@@ -24,7 +24,7 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: READMD.md
+title: README.md
 email: metishonora@icloud.com
 author: S G Kim
 
