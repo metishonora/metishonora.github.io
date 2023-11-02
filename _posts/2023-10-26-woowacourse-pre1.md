@@ -1,7 +1,7 @@
 ---
 layout: post
 title: 클린 코드는 어떻게 작성하는가?
-subtitle: 우테코 6기 프리코스 1주차 - 숫자 야구
+subtitle: 우테코 6기 프리코스 1주차 - 숫자 야구 회고
 author: Metishonora
 categories: 우테코
 banner:
@@ -19,8 +19,9 @@ tags: [우테코프리코스, 클린코드]
 ## 개요
 첫 인상은 굉장히 쉬워보였지만, 클린 코드에 대해 고민하면서 시간을 꽤 썼던 문제였다.
 
-처음에는 PS 하듯이 메인 메서드에 모든 내용을 두고 구현할 수 있었다. [당시 커밋](https://github.com/metishonora/java-baseball-6/blob/f2be5569f4bdfb648d3139cf8ed4c0662622661b/src/main/java/baseball/Application.java)
+처음에는 PS 하듯이 메인 메서드에 모든 내용을 두고 구현할 수 있었다. [당시 커밋](https://github.com/metishonora/java-baseball-6/blob/f2be5569f4bdfb648d3139cf8ed4c0662622661b/src/main/java/baseball/Application.java
 
+이번 과제를 진행하며 깨달았던 내용을 간략하게 요약하고자 한다.
 ### 클린 코드 규칙
 [우테코 클린 코드 체크리스트](https://github.com/woowacourse/woowacourse-docs/blob/main/cleancode/pr_checklist.md)에서 권장하는 사항은 다음과 같다.
 > 1. 한 메서드에 한 단계의 indent만 허용하기
@@ -52,7 +53,7 @@ static void play() {                       // 0단계
 }
 ```
 
-왜 코드에서 반복문과 조건문을 동시에 사용하지 말라는 말일까? 의문이 들었지만 우선 조건에 맞도록 메서드를 분리하고 나니 금세 답을 알 수 있었다.
+왜 코드에서 반복문과 조건문을 동시에 사용하지 말라는 것인지 의문이 들었지만 우선 조건에 맞도록 메서드를 분리하고 나니 금세 답을 알 수 있었다.
 ```java
 static void play() {
 	do {
@@ -193,6 +194,8 @@ public static void printResult(Result result) {
 
 이번 기회를 통해 다른 사람들도 이해하기 쉬운, 생산성 좋은 코드의 중요성을
 실감할 수 있었다. 연습을 통해 클린한 코드를 작성할 수 있도록 노력해야겠다.
+
+다음 주차부터는 진행하면서 고민한 내용을 차근차근 풀어보려고 한다.
 
 ## Reference
 \[1] [https://tecoble.techcourse.co.kr/post/2020-05-08-First-Class-Collection/](https://tecoble.techcourse.co.kr/post/2020-05-08-First-Class-Collection/)
