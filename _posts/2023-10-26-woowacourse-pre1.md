@@ -19,7 +19,7 @@ tags: [우테코프리코스, 클린코드]
 ## 개요
 첫 인상은 굉장히 쉬워보였지만, 클린 코드에 대해 고민하면서 시간을 꽤 썼던 문제였다.
 
-처음에는 PS 하듯이 메인 메서드에 모든 내용을 두고 구현할 수 있었다. [당시 커밋](https://github.com/metishonora/java-baseball-6/blob/f2be5569f4bdfb648d3139cf8ed4c0662622661b/src/main/java/baseball/Application.java
+처음에는 PS 하듯이 메인 메서드에 모든 내용을 두고 구현할 수 있었다. [당시 커밋](https://github.com/metishonora/java-baseball-6/blob/f2be5569f4bdfb648d3139cf8ed4c0662622661b/src/main/java/baseball/Application.java)
 
 이번 과제를 진행하며 깨달았던 내용을 간략하게 요약하고자 한다.
 ### 클린 코드 규칙
