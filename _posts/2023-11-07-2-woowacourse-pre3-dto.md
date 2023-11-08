@@ -56,7 +56,7 @@ class UserNameDto {
 
 void printUser() {
 	...
-	outputView.print(UserNameDto);
+	outputView.print(UserNameDto.from(user));
 }
 ```
 위 코드는 User 객체에서 *name*필드만을 DTO에 담아 뷰에 넘겨주는 모습이다.
