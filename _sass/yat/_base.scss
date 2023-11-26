@@ -32,6 +32,16 @@ body {
   flex-direction: column;
 }
 
+b, strong {
+  font-weight: $base-font-weight * 1.5;
+  color: #ff4f92;
+}
+
+em {
+  font-style: italic;
+  color: #ff4f92;
+}
+
 
 
 /**

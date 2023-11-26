@@ -26,6 +26,16 @@ html[data-theme="dark"]  {
     background-color: $dark-background-color;
   }
 
+  b, strong {
+    font-weight: $base-font-weight * 1.5;
+    color: #ff82b2;
+  }
+
+  em {
+    font-style: italic;
+    color: #ff82b2;
+  }
+
   *:not(pre) > code {
     color: $dark-text-color;
     background-color: #454545;
@@ -215,4 +225,3 @@ html[data-theme="dark"]  {
     }
   }
 }
-
