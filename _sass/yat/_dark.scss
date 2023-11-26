@@ -71,6 +71,16 @@ html[data-theme="dark"]  {
     }
   }
 
+  img:not(.site-favicon) {
+    border: 1px solid #4d8ce6;
+    filter: invert(1) hue-rotate(180deg) grayscale(50%);
+  }
+
+  pre {
+    border: 1px solid #4d8ce6;
+    filter: invert(1) hue-rotate(180deg) grayscale(50%);
+  }
+
   .site-header {
     background-color: #090909;
 
