@@ -24,13 +24,11 @@ Swift는 Stack, Queue 또는 Deque를 자체 지원하지 않는다. <br>
 Swift의 Array 자료구조에서 지원하는 앞뒤쪽 insert(), remove()를 사용할 수 있지만,
 Array의 reference를 자세히 살펴보면 문제점을 알 수 있다.
 
-> insert(_:at:)
->> Complexity <br>
->> O(n), where n is the length of the array. [[1]]
+> insert(_:at:) <br>
+> O(n), where n is the length of the array. [[1]]
 
-> removeFirst()
->> Complexity <br>
->> O(n), where n is the length of the collection. [[2]]
+> removeFirst() <br>
+> O(n), where n is the length of the collection. [[2]]
 
 맨 뒤쪽의 element를 삽입/제거하는 것은 O(1)으로 가능하지만, 맨 앞쪽의 element를 삽입/제거할 경우엔 O(N)이 걸리는 것을 확인할 수 있다.<br>
 두 메서드를 O(1)로 최적화해야 PS에서 정상적으로 사용할 수 있을 것이다.
@@ -51,8 +49,8 @@ removeLast(), append(), reversed()의 시간 복잡도가 O(1)인 점에서 힌�
 left.append()와 right.append()를 사용하면
 앞쪽 배열과 뒤집힌 배열에 O(1)로 원소를 추가할 수 있다.
 
->*(위)* right에 원소 추가<br>
->*(아래)* left에 원소 추가
+*(위)* right에 원소 추가<br>
+*(아래)* left에 원소 추가
 
 두 개의 배열을 합쳐 하나의 큰 Queue로 본다면,
 전체 Queue의 앞/뒤에 O(1)로 원소를 추가한 것으로 볼 수 있다.

@@ -13,8 +13,8 @@ banner:
   subheading_style: "font-weight: bold; color: gold"
 tags: [우테코프리코스, 클린코드]
 ---
-> **Github link**:
-> [https://github.com/metishonora/java-baseball-6/tree/metishonora](https://github.com/metishonora/java-baseball-6/tree/metishonora)
+Github link:
+[https://github.com/metishonora/java-baseball-6/tree/metishonora](https://github.com/metishonora/java-baseball-6/tree/metishonora)
 
 ## 개요
 첫 인상은 굉장히 쉬워보였지만, 클린 코드에 대해 고민하면서 시간을 꽤 썼던 문제였다.
@@ -162,7 +162,8 @@ public static void printResult(Result result) {
 코드 자체를 이해하기 쉽게 만드는 것이 바람직하다고 한다.
 
 과제 종료 이후 적은 주석을 다시 보니, 나쁜 주석에 속하는 것들이 많은 것을 확인할 수 있었다.
-1. 같은 이야기를 반복하는 주석
+- 같은 이야기를 반복하는 주석
+
 ```java
 /**
  * 게임을 재시작할 것인지 입력받습니다.
@@ -178,7 +179,9 @@ public static void printResult(Result result) {
         throw new IllegalArgumentException();
     }
 ```
-2. 의무적으로 다는 주석. 예전에 C 코딩을 하면서 생겼던 습관 때문에 의무적으로 작성했던 것 같다.
+
+- 의무적으로 다는 주석. 예전에 C 코딩을 하면서 생겼던 습관 때문에 의무적으로 작성했던 것 같다.
+
 ```java
 /**
  * 투수 객체와 타자 객체를 비교한 결과를 출력합니다.

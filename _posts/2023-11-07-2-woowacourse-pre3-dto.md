@@ -85,7 +85,7 @@ public class OutputView {
 }
 ```
 고민했던 점은 private 선언된 *numbers*필드의 정보를 Dto로 건네주는 방법이다.
-Getter 메서드를 추가하여 Dto에 전달해줄 수 있지만(*실제로 처음 Dto를 공부했던 글[[1]], [[2]]에서는 이 방법을 권장하는 것 같다*),
+Getter 메서드를 추가하여 Dto에 전달해줄 수 있지만(실제로 처음 Dto를 공부했던 글[[1]], [[2]]에서는 이 방법을 권장하는 것 같다),
 OutputView에 만들어둔 코드를 재사용하고 싶어 toString()을 오버라이딩하여 사용하였다.
 ```java
 public class ResultDto {
