@@ -41,8 +41,22 @@ html[data-theme="dark"]  {
     background-color: #454545;
   }
 
+  /*
   blockquote {
     border-left: 4px solid #484848;
+  }
+  */
+
+  blockquote {
+    border-left: 3px solid #4d8ce6;
+    color: $dark-text-color;
+
+    &:before {
+      background-color: $dark-background-color;
+    }
+    &:after {
+      color: #4d8ce6;
+    }
   }
 
   table {
