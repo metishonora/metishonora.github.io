@@ -12,6 +12,7 @@ banner:
   heading_style: "font-size: 3em; font-weight: bold; text-decoration: underline"
   subheading_style: "font-weight: bold; color: gold"
 tags: [우테코프리코스, 클린코드]
+published: false
 ---
 Github link:
 [https://github.com/metishonora/java-baseball-6/tree/metishonora](https://github.com/metishonora/java-baseball-6/tree/metishonora)
