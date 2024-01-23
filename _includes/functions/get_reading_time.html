@@ -11,7 +11,7 @@
 {% if include.params.speed %}
   {% assign speed = include.params.speed %}
 {% else %}
-  {% assign speed = 160 %}
+  {% assign speed = 300 %}
 {% endif %}
 
 {%- include functions.html func='get_article_words' -%}
@@ -24,7 +24,7 @@
 {% assign hours = total_mins | divided_by: 60 %}
 {% assign mins = total_mins | modulo: 60 %}
 
-{% assign return = "About" %}
+{% assign return = "about" %}
 
 {% if hours > 0 %}
   {% assign unit = "hour" %}
@@ -35,7 +35,8 @@
     | append: " "
     | append: hours
     | append: " "
-    | append: unit %}
+    | append: unit
+    | append: " to read" %}
 {% endif %}
 
 {% assign unit = "min" %}
@@ -46,4 +47,5 @@
   | append: " "
   | append: mins
   | append: " "
-  | append: unit %}
+  | append: unit
+  | append: " to read" %}
