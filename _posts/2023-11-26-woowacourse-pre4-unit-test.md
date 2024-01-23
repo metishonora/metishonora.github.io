@@ -60,7 +60,7 @@ View-)Controller: 입력값 검증 후, 정수 값만 전달
 Controller-)Domain: 입력값 검증 후, 올바른 값만 전달
 ```
 잘못된 입력 값을 넣었을 때 예외를 잘 던지는지, 올바른 값을 넣었을 때 반환 값은 일치하는지 검사하고 싶다.
-하지만 *requesInteger()* 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine() (Scanner.nextInt()와 같은 역할)을 호출해 입력을 받는다.
+하지만 *requesInteger()* 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine()을 호출해 입력을 받는다.
 
 requestMoney() 메서드 역시 비슷한 방식이고, 심지어 원하는 입력을 받을 때까지 while문을 돌고 있다.
 
