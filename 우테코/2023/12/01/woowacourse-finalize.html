@@ -1,0 +1,1414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="google-site-verification" content="X_Sk9dHytUBVYyETRCACtsXUTaafN_O2tT9yQMpSca8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>클린 코드 작성하기 - 우테코를 마치며 | README.md</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta property="og:title" content="클린 코드 작성하기 - 우테코를 마치며">
+<meta name="author" content="Metishonora">
+<meta property="og:locale" content="ko">
+<meta name="description" content='왜 클린코드가 중요할까 프로젝트를 진행하다 보면 다른 사람의 코드를 읽거나, 요구사항이 변하는 경우가 굉장히 많았다. 4주간의 우테코 프리코스를 진행하는 중에도 요구사항 변화에 대응할 수 있어야 한다는 피드백이 있었다. 하지만 코드를 기간에 쫓겨 작성하다 보면 깔끔한 코드에서 멀어지기도 하고, 코드를 작성한 직후에는 어느 부분이 깔끔하지 않았는지 파악하기도 쉽지 않다. 그래서 평소에 클린 코드를 작성하려고 노력해야 할 것이다. 이번 우테코 과정 중에는 다른 사람들과 코드 리뷰를 하면서 고칠 부분을 쉽게 찾을 수 있었고, 덕분에 짧은 4주 동안 코드 스타일을 많이 변화시킬 수 있었던 것 같다. 문제의 부분들 1주 차에 작성했던 코드를 다시 보면서 부족했던 부분들을 찾아봤다. 주석보다 코드로 표현하기 코드만으로 나타내기 어려운 작성한 의도나 주의할 부분을 표현하기 위해서라도, 주석을 작성하는 것은 중요한 일이라고 생각한다. 라이브러리처럼 재사용 가능성이 높은 코드일수록 자세한 주석이 도움 되는 경우가 많을 것이다. 하지만 주석에만 의존하는 대신, 우선 코드 자체를 알기 쉽게 작성하는 것을 우선시해야 한다. 아래는 1주 차, 야구 게임 과제에서 작성했던 코드이다. public class Player { // 플레이어가 작성한 숫자 (예시: 123) private final List&lt;Integer&gt; numbers; /** * 자신과 another 객체의 숫자값을 비교합니다. * 예시: 123과 192를 비교하면 1스트라이크 1볼을 반환합니다. * * @param another 비교할 대상 * @return [strike 개수, ball 개수]를 나타내는 Result 객체 */ public Result compareWith(Player another) { int strike = 0; int ball = 0; for (int i = 1; i &lt;= numbers.size(); i++) { // i번째 자리 숫자 확인 int myNumber = numbers.get(i - 1); int anotherNumberAt = another.containsNumber(myNumber); if (anotherNumberAt == i) { // strike strike++; } else if (anotherNumberAt &gt; 0) { // ball ball++; } } return new Result(strike, ball); } } 그리고 이쪽은 4주 차, 크리스마스 프로모션 과제에서 작성했던 코드이다. // 현재 이벤트의 혜택을 받을 수 있는지 판단합니다. public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; day.isDayAfter(DAY_WHEN_EVENT_ENDS); } // 전체 이벤트에 참여하기 위한 최소 조건 static boolean isEligibleForEntireEvent(EntireOrder orders) { return orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE_FOR_ENTIRE_EVENT; } 위쪽 코드도 주석이 있다면 이해하기 어려운 코드는 아니라고 생각하지만, 아래쪽 코드가 직관적으로 빠르게 파악하기 쉽다. 메서드를 분리하여 최대한 작은 책임을 지게 하였고, 자세하게 이름을 달아 줬다. 덕분에 단위 별로 테스트하기도 편해졌고, 이후 변경 사항에도 대처하기 쉬울 것이다. else 제거하기 무분별한 else 구문을 지양해야 하는 이유 역시 코드를 읽기 어렵게 만들고, 디버깅을 어렵게 만들어 유지보수가 힘들어지기 때문이다. 다시 한번 1주 차 코드를 소개한다. /** * 투수 객체와 타사 객체를 비교한 결과를 출력합니다. * * @param result 스트라이크 수, 볼 수를 담은 Result 레코드 */ public static void printResult(Result result) { if (result.strike() &gt; 0 &amp;&amp; result.ball() &gt; 0) { System.out.printf("%d볼 %d스트라이크\n", result.strike(), result.ball()); } else if (result.strike() &gt; 0) { System.out.printf("%d스트라이크\n", result.strike()); } else if (result.ball() &gt; 0) { System.out.printf("%d볼\n", result.ball()); } else { System.out.println("낫싱"); } } 반복적인 부분이 많아서, 출력 요구사항이 변하거나 조건이 변한다면 여러 부분을 변경할 가능성이 높다. 조건이 많아질수록 분기는 복잡해지고, 실수하기 쉬워질 것이다. 4주 차 코드에서는 if-else를 나열하여 입력값을 검증하는 대신, 별도의 검증 메서드로 분리하였다. public static EntireOrder readOrders(String line) { validateRegex(line); List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); validateOrdersAreDistinct(orders); validateOrdersSize(orders); validateOrdersHaveNonDrinkMenu(orders); return new EntireOrder(orders); } // 예시 private static void validatePattern(String line) { if (!line.matches("^(.+-\\d+,)*.+-\\d+$")) { throw new IllegalArgumentException(MENU_EXCEPTION); } } 다른 부분에서도 early return을 사용하고, 메서드를 분리하여 가독성을 높였다. // 전 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (Event.isEligibleForEntireEvent(orders)) { if (orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE) { return Drink.CHAMPAGNE.getPrice(); } else { return 0; } } else { return 0; } } // 후 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (!isEligible(orders, day)) { return 0; } return Drink.CHAMPAGNE.getPrice(); } public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE; } 덕분에 각 조건이 무슨 의미를 가지는지 파악하기 쉬워졌고, 단위 테스트를 쉽게 작성할 수 있었다. 무리한 리팩토링도 문제다 한편 너무 리팩토링에만 집중한 나머지, 오히려 알기 어려워진 부분도 있었다. 예를 들자면, 3주 차에는 DTO 패턴을 배워 사용했다. public class LottoDto { private final String numbers; private LottoDto(Lotto lotto) { numbers = lotto.toString(); } public static LottoDto from(Lotto lotto) { return new LottoDto(lotto); } @Override public String toString() { return numbers; } } DTO는 모델과 뷰의 결합을 줄이기 위해 사용하는 것이지만, 내가 작성한 코드에서는 그렇지 않았다. 사용하는 이유를 잘 모르고 단순히 편하게 toString을 정의한 뒤 내부 로직, 테스팅, 출력 등 많은 부분에서 사용했다. 겉보기에는 코드가 단순했지만, 한 곳에서의 변경이 여러 부분에 영향을 주게 되었다. 4주 차 피드백에서도 이 내용을 확인할 수 있었다. 바로 단일 책임의 원칙을 지키고, 비즈니스 로직과 UI 로직을 하나의 클래스/메서드가 담당하지 않도록 하라는 것이었다. 즉 왜 리팩토링이 필요한지 이유를 알고 필요한 장소를 잘 파악하는 것이 중요할 것이다. 마치며 지금까지 우테코 프리코스를 진행하면서 배운 내용들 중에, 클린 코드 관련해 기억에 남는 부분을 정리했다. 어떻게 좋은 코드를 만들 수 있는지 위 내용 외에도 소통할 기회가 있었고, 그중 편하게 중복을 제거하고 객체 지향적인 코드를 짤 수 있게 도와주는 스프링에 대해 소개받을 수 있었다. 우테코를 더 길게 진행할 수 있었다면 좋았겠지만, 그렇지 않더라도 스프링을 공부하면서 클린 코드를 만들기 위해 노력해 보려 한다.'>
+<meta property="og:description" content='왜 클린코드가 중요할까 프로젝트를 진행하다 보면 다른 사람의 코드를 읽거나, 요구사항이 변하는 경우가 굉장히 많았다. 4주간의 우테코 프리코스를 진행하는 중에도 요구사항 변화에 대응할 수 있어야 한다는 피드백이 있었다. 하지만 코드를 기간에 쫓겨 작성하다 보면 깔끔한 코드에서 멀어지기도 하고, 코드를 작성한 직후에는 어느 부분이 깔끔하지 않았는지 파악하기도 쉽지 않다. 그래서 평소에 클린 코드를 작성하려고 노력해야 할 것이다. 이번 우테코 과정 중에는 다른 사람들과 코드 리뷰를 하면서 고칠 부분을 쉽게 찾을 수 있었고, 덕분에 짧은 4주 동안 코드 스타일을 많이 변화시킬 수 있었던 것 같다. 문제의 부분들 1주 차에 작성했던 코드를 다시 보면서 부족했던 부분들을 찾아봤다. 주석보다 코드로 표현하기 코드만으로 나타내기 어려운 작성한 의도나 주의할 부분을 표현하기 위해서라도, 주석을 작성하는 것은 중요한 일이라고 생각한다. 라이브러리처럼 재사용 가능성이 높은 코드일수록 자세한 주석이 도움 되는 경우가 많을 것이다. 하지만 주석에만 의존하는 대신, 우선 코드 자체를 알기 쉽게 작성하는 것을 우선시해야 한다. 아래는 1주 차, 야구 게임 과제에서 작성했던 코드이다. public class Player { // 플레이어가 작성한 숫자 (예시: 123) private final List&lt;Integer&gt; numbers; /** * 자신과 another 객체의 숫자값을 비교합니다. * 예시: 123과 192를 비교하면 1스트라이크 1볼을 반환합니다. * * @param another 비교할 대상 * @return [strike 개수, ball 개수]를 나타내는 Result 객체 */ public Result compareWith(Player another) { int strike = 0; int ball = 0; for (int i = 1; i &lt;= numbers.size(); i++) { // i번째 자리 숫자 확인 int myNumber = numbers.get(i - 1); int anotherNumberAt = another.containsNumber(myNumber); if (anotherNumberAt == i) { // strike strike++; } else if (anotherNumberAt &gt; 0) { // ball ball++; } } return new Result(strike, ball); } } 그리고 이쪽은 4주 차, 크리스마스 프로모션 과제에서 작성했던 코드이다. // 현재 이벤트의 혜택을 받을 수 있는지 판단합니다. public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; day.isDayAfter(DAY_WHEN_EVENT_ENDS); } // 전체 이벤트에 참여하기 위한 최소 조건 static boolean isEligibleForEntireEvent(EntireOrder orders) { return orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE_FOR_ENTIRE_EVENT; } 위쪽 코드도 주석이 있다면 이해하기 어려운 코드는 아니라고 생각하지만, 아래쪽 코드가 직관적으로 빠르게 파악하기 쉽다. 메서드를 분리하여 최대한 작은 책임을 지게 하였고, 자세하게 이름을 달아 줬다. 덕분에 단위 별로 테스트하기도 편해졌고, 이후 변경 사항에도 대처하기 쉬울 것이다. else 제거하기 무분별한 else 구문을 지양해야 하는 이유 역시 코드를 읽기 어렵게 만들고, 디버깅을 어렵게 만들어 유지보수가 힘들어지기 때문이다. 다시 한번 1주 차 코드를 소개한다. /** * 투수 객체와 타사 객체를 비교한 결과를 출력합니다. * * @param result 스트라이크 수, 볼 수를 담은 Result 레코드 */ public static void printResult(Result result) { if (result.strike() &gt; 0 &amp;&amp; result.ball() &gt; 0) { System.out.printf("%d볼 %d스트라이크\n", result.strike(), result.ball()); } else if (result.strike() &gt; 0) { System.out.printf("%d스트라이크\n", result.strike()); } else if (result.ball() &gt; 0) { System.out.printf("%d볼\n", result.ball()); } else { System.out.println("낫싱"); } } 반복적인 부분이 많아서, 출력 요구사항이 변하거나 조건이 변한다면 여러 부분을 변경할 가능성이 높다. 조건이 많아질수록 분기는 복잡해지고, 실수하기 쉬워질 것이다. 4주 차 코드에서는 if-else를 나열하여 입력값을 검증하는 대신, 별도의 검증 메서드로 분리하였다. public static EntireOrder readOrders(String line) { validateRegex(line); List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); validateOrdersAreDistinct(orders); validateOrdersSize(orders); validateOrdersHaveNonDrinkMenu(orders); return new EntireOrder(orders); } // 예시 private static void validatePattern(String line) { if (!line.matches("^(.+-\\d+,)*.+-\\d+$")) { throw new IllegalArgumentException(MENU_EXCEPTION); } } 다른 부분에서도 early return을 사용하고, 메서드를 분리하여 가독성을 높였다. // 전 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (Event.isEligibleForEntireEvent(orders)) { if (orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE) { return Drink.CHAMPAGNE.getPrice(); } else { return 0; } } else { return 0; } } // 후 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (!isEligible(orders, day)) { return 0; } return Drink.CHAMPAGNE.getPrice(); } public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE; } 덕분에 각 조건이 무슨 의미를 가지는지 파악하기 쉬워졌고, 단위 테스트를 쉽게 작성할 수 있었다. 무리한 리팩토링도 문제다 한편 너무 리팩토링에만 집중한 나머지, 오히려 알기 어려워진 부분도 있었다. 예를 들자면, 3주 차에는 DTO 패턴을 배워 사용했다. public class LottoDto { private final String numbers; private LottoDto(Lotto lotto) { numbers = lotto.toString(); } public static LottoDto from(Lotto lotto) { return new LottoDto(lotto); } @Override public String toString() { return numbers; } } DTO는 모델과 뷰의 결합을 줄이기 위해 사용하는 것이지만, 내가 작성한 코드에서는 그렇지 않았다. 사용하는 이유를 잘 모르고 단순히 편하게 toString을 정의한 뒤 내부 로직, 테스팅, 출력 등 많은 부분에서 사용했다. 겉보기에는 코드가 단순했지만, 한 곳에서의 변경이 여러 부분에 영향을 주게 되었다. 4주 차 피드백에서도 이 내용을 확인할 수 있었다. 바로 단일 책임의 원칙을 지키고, 비즈니스 로직과 UI 로직을 하나의 클래스/메서드가 담당하지 않도록 하라는 것이었다. 즉 왜 리팩토링이 필요한지 이유를 알고 필요한 장소를 잘 파악하는 것이 중요할 것이다. 마치며 지금까지 우테코 프리코스를 진행하면서 배운 내용들 중에, 클린 코드 관련해 기억에 남는 부분을 정리했다. 어떻게 좋은 코드를 만들 수 있는지 위 내용 외에도 소통할 기회가 있었고, 그중 편하게 중복을 제거하고 객체 지향적인 코드를 짤 수 있게 도와주는 스프링에 대해 소개받을 수 있었다. 우테코를 더 길게 진행할 수 있었다면 좋았겠지만, 그렇지 않더라도 스프링을 공부하면서 클린 코드를 만들기 위해 노력해 보려 한다.'>
+<link rel="canonical" href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html">
+<meta property="og:url" content="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html">
+<meta property="og:site_name" content="README.md">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-12-01T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="클린 코드 작성하기 - 우테코를 마치며">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Metishonora"},"dateModified":"2023-12-01T00:00:00+00:00","datePublished":"2023-12-01T00:00:00+00:00","description":"왜 클린코드가 중요할까 프로젝트를 진행하다 보면 다른 사람의 코드를 읽거나, 요구사항이 변하는 경우가 굉장히 많았다. 4주간의 우테코 프리코스를 진행하는 중에도 요구사항 변화에 대응할 수 있어야 한다는 피드백이 있었다. 하지만 코드를 기간에 쫓겨 작성하다 보면 깔끔한 코드에서 멀어지기도 하고, 코드를 작성한 직후에는 어느 부분이 깔끔하지 않았는지 파악하기도 쉽지 않다. 그래서 평소에 클린 코드를 작성하려고 노력해야 할 것이다. 이번 우테코 과정 중에는 다른 사람들과 코드 리뷰를 하면서 고칠 부분을 쉽게 찾을 수 있었고, 덕분에 짧은 4주 동안 코드 스타일을 많이 변화시킬 수 있었던 것 같다. 문제의 부분들 1주 차에 작성했던 코드를 다시 보면서 부족했던 부분들을 찾아봤다. 주석보다 코드로 표현하기 코드만으로 나타내기 어려운 작성한 의도나 주의할 부분을 표현하기 위해서라도, 주석을 작성하는 것은 중요한 일이라고 생각한다. 라이브러리처럼 재사용 가능성이 높은 코드일수록 자세한 주석이 도움 되는 경우가 많을 것이다. 하지만 주석에만 의존하는 대신, 우선 코드 자체를 알기 쉽게 작성하는 것을 우선시해야 한다. 아래는 1주 차, 야구 게임 과제에서 작성했던 코드이다. public class Player { // 플레이어가 작성한 숫자 (예시: 123) private final List&lt;Integer&gt; numbers; /** * 자신과 another 객체의 숫자값을 비교합니다. * 예시: 123과 192를 비교하면 1스트라이크 1볼을 반환합니다. * * @param another 비교할 대상 * @return [strike 개수, ball 개수]를 나타내는 Result 객체 */ public Result compareWith(Player another) { int strike = 0; int ball = 0; for (int i = 1; i &lt;= numbers.size(); i++) { // i번째 자리 숫자 확인 int myNumber = numbers.get(i - 1); int anotherNumberAt = another.containsNumber(myNumber); if (anotherNumberAt == i) { // strike strike++; } else if (anotherNumberAt &gt; 0) { // ball ball++; } } return new Result(strike, ball); } } 그리고 이쪽은 4주 차, 크리스마스 프로모션 과제에서 작성했던 코드이다. // 현재 이벤트의 혜택을 받을 수 있는지 판단합니다. public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; day.isDayAfter(DAY_WHEN_EVENT_ENDS); } // 전체 이벤트에 참여하기 위한 최소 조건 static boolean isEligibleForEntireEvent(EntireOrder orders) { return orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE_FOR_ENTIRE_EVENT; } 위쪽 코드도 주석이 있다면 이해하기 어려운 코드는 아니라고 생각하지만, 아래쪽 코드가 직관적으로 빠르게 파악하기 쉽다. 메서드를 분리하여 최대한 작은 책임을 지게 하였고, 자세하게 이름을 달아 줬다. 덕분에 단위 별로 테스트하기도 편해졌고, 이후 변경 사항에도 대처하기 쉬울 것이다. else 제거하기 무분별한 else 구문을 지양해야 하는 이유 역시 코드를 읽기 어렵게 만들고, 디버깅을 어렵게 만들어 유지보수가 힘들어지기 때문이다. 다시 한번 1주 차 코드를 소개한다. /** * 투수 객체와 타사 객체를 비교한 결과를 출력합니다. * * @param result 스트라이크 수, 볼 수를 담은 Result 레코드 */ public static void printResult(Result result) { if (result.strike() &gt; 0 &amp;&amp; result.ball() &gt; 0) { System.out.printf(&quot;%d볼 %d스트라이크\\n&quot;, result.strike(), result.ball()); } else if (result.strike() &gt; 0) { System.out.printf(&quot;%d스트라이크\\n&quot;, result.strike()); } else if (result.ball() &gt; 0) { System.out.printf(&quot;%d볼\\n&quot;, result.ball()); } else { System.out.println(&quot;낫싱&quot;); } } 반복적인 부분이 많아서, 출력 요구사항이 변하거나 조건이 변한다면 여러 부분을 변경할 가능성이 높다. 조건이 많아질수록 분기는 복잡해지고, 실수하기 쉬워질 것이다. 4주 차 코드에서는 if-else를 나열하여 입력값을 검증하는 대신, 별도의 검증 메서드로 분리하였다. public static EntireOrder readOrders(String line) { validateRegex(line); List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); validateOrdersAreDistinct(orders); validateOrdersSize(orders); validateOrdersHaveNonDrinkMenu(orders); return new EntireOrder(orders); } // 예시 private static void validatePattern(String line) { if (!line.matches(&quot;^(.+-\\\\d+,)*.+-\\\\d+$&quot;)) { throw new IllegalArgumentException(MENU_EXCEPTION); } } 다른 부분에서도 early return을 사용하고, 메서드를 분리하여 가독성을 높였다. // 전 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (Event.isEligibleForEntireEvent(orders)) { if (orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE) { return Drink.CHAMPAGNE.getPrice(); } else { return 0; } } else { return 0; } } // 후 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (!isEligible(orders, day)) { return 0; } return Drink.CHAMPAGNE.getPrice(); } public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE; } 덕분에 각 조건이 무슨 의미를 가지는지 파악하기 쉬워졌고, 단위 테스트를 쉽게 작성할 수 있었다. 무리한 리팩토링도 문제다 한편 너무 리팩토링에만 집중한 나머지, 오히려 알기 어려워진 부분도 있었다. 예를 들자면, 3주 차에는 DTO 패턴을 배워 사용했다. public class LottoDto { private final String numbers; private LottoDto(Lotto lotto) { numbers = lotto.toString(); } public static LottoDto from(Lotto lotto) { return new LottoDto(lotto); } @Override public String toString() { return numbers; } } DTO는 모델과 뷰의 결합을 줄이기 위해 사용하는 것이지만, 내가 작성한 코드에서는 그렇지 않았다. 사용하는 이유를 잘 모르고 단순히 편하게 toString을 정의한 뒤 내부 로직, 테스팅, 출력 등 많은 부분에서 사용했다. 겉보기에는 코드가 단순했지만, 한 곳에서의 변경이 여러 부분에 영향을 주게 되었다. 4주 차 피드백에서도 이 내용을 확인할 수 있었다. 바로 단일 책임의 원칙을 지키고, 비즈니스 로직과 UI 로직을 하나의 클래스/메서드가 담당하지 않도록 하라는 것이었다. 즉 왜 리팩토링이 필요한지 이유를 알고 필요한 장소를 잘 파악하는 것이 중요할 것이다. 마치며 지금까지 우테코 프리코스를 진행하면서 배운 내용들 중에, 클린 코드 관련해 기억에 남는 부분을 정리했다. 어떻게 좋은 코드를 만들 수 있는지 위 내용 외에도 소통할 기회가 있었고, 그중 편하게 중복을 제거하고 객체 지향적인 코드를 짤 수 있게 도와주는 스프링에 대해 소개받을 수 있었다. 우테코를 더 길게 진행할 수 있었다면 좋았겠지만, 그렇지 않더라도 스프링을 공부하면서 클린 코드를 만들기 위해 노력해 보려 한다.","headline":"클린 코드 작성하기 - 우테코를 마치며","mainEntityOfPage":{"@type":"WebPage","@id":"https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html"},"url":"https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="/assets/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="https://metishonora.github.io/feed.xml" title="README.md">
+<!-- Google tag (gtag.js) -->
+<script>
+  function initGoogleAnalytics() {
+    var doNotTrack = (window.doNotTrack === "1" || navigator.doNotTrack === "1" ||
+      navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1");
+    var enableDNT = "true" == "true";
+
+    if (!enableDNT || !doNotTrack) {
+      var measurementId = 'G-3ZE0SQ8DC0';
+
+      (function(src) {
+        var tag = document.createElement('script');
+        tag.src = src;
+        tag.async = true;
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      })('https://www.googletagmanager.com/gtag/js?id=' + measurementId);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', measurementId);
+    }
+  }
+  window.addEventListener("load", initGoogleAnalytics);
+</script>
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/default-skin/default-skin.css" rel="stylesheet">
+<style>
+  .pswp .pswp__container .pswp__img {
+    background-color: white;
+  }
+</style>
+
+<script>
+  function initPhotoSwipe() {
+    var mainEl = document.querySelector("section.main");
+
+    var imgEls = mainEl.querySelectorAll("img:not(.emoji)");
+    imgEls.forEach((imgEl) => {
+      imgEl.outerHTML = `
+    <a class="photo-swipe"
+      href="${imgEl.src}"
+      data-width="${imgEl.getAttribute("width") || imgEl.width * 2}"
+      data-height="${imgEl.getAttribute("height") || imgEl.height * 2}"
+      data-caption="${imgEl.getAttribute("caption") || imgEl.alt}"
+      target="_blank">
+      ${imgEl.outerHTML}
+    </a>`;
+    });
+
+    // Init empty gallery array
+    var container = [];
+
+    // Loop over gallery items and push it to the array
+    var linkEls = mainEl.querySelectorAll("a.photo-swipe");
+    linkEls.forEach((link) => {
+      var item = {
+        src: link.getAttribute("href"),
+        w: link.dataset.width,
+        h: link.dataset.height,
+        title: link.dataset.caption || "",
+      };
+      container.push(item);
+    });
+
+    // Define click event on gallery item
+    linkEls.forEach((link, index) => {
+      link.addEventListener("click", (event) => {
+        // Prevent location change
+        event.preventDefault();
+
+        // Define object and gallery options
+        var pswp = document.querySelector(".pswp");
+
+        var zoomLevel = 1;
+
+        // Define object and gallery options
+        var options = {
+          index: index,
+          bgOpacity: 0.85,
+          showHideOpacity: true,
+          closeOnScroll: true,
+          maxSpreadZoom: 1,
+          getDoubleTapZoom: (isMouseClick, item) => {
+            if (item.detail) {
+              zoomLevel += item.detail.origEvent.shiftKey ? -1 : 1;
+              item.detail = undefined;
+            } else {
+              zoomLevel = zoomLevel === 1 ? 2 : 1;
+            }
+            if (zoomLevel <= 1) {
+              zoomLevel = 1;
+              setTimeout(() => pswp.classList.remove("pswp--zoomed-in"), 0);
+            }
+            return item.initialZoomLevel * zoomLevel;
+          },
+        };
+
+        // Initialize PhotoSwipe
+        var gallery = new PhotoSwipe(
+          pswp,
+          PhotoSwipeUI_Default,
+          container,
+          options
+        );
+
+        gallery.init();
+
+        // Custom zoom event
+        gallery.container.addEventListener("pswpTap", (e) => {
+          gallery.currItem.detail = e.detail;
+        });
+      });
+    });
+  }
+
+  window.addEventListener("load", initPhotoSwipe);
+</script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+</head>
+<body>
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+  <!-- Background of PhotoSwipe.
+           It's a separate element as animating opacity is faster than rgba(). -->
+  <div class="pswp__bg"></div>
+  <!-- Slides wrapper with overflow:hidden. -->
+  <div class="pswp__scroll-wrap">
+    <!-- Container that holds slides.
+              PhotoSwipe keeps only 3 of them in the DOM to save memory.
+              Don't modify these 3 pswp__item elements, data is added later on. -->
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+    <div class="pswp__ui pswp__ui--hidden">
+      <div class="pswp__top-bar">
+        <!--  Controls are self-explanatory. Order can be changed. -->
+        <div class="pswp__counter"></div>
+        <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+        <button class="pswp__button pswp__button--share" title="Share"></button>
+        <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+        <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+        <!-- element will get class pswp__preloader--active when preloader is running -->
+        <div class="pswp__preloader">
+          <div class="pswp__preloader__icn">
+            <div class="pswp__preloader__cut">
+              <div class="pswp__preloader__donut"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+        <div class="pswp__share-tooltip"></div>
+      </div>
+      <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+      <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+      <div class="pswp__caption">
+        <div class="pswp__caption__center"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner">
+<span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="README.md" src="/assets/favicon.ico" onerror="this.style.display='none'">
+  README.md
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger">
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewbox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger">
+<a class="page-link" href="/about.html">GITHUB</a><a class="page-link" href="/archives.html">ARCHIVES</a><a class="page-link" href="/categories.html">CATEGORIES</a><a class="page-link" href="/tags.html">TAGS</a><a class="page-link" href="/index.html">MAIN</a>
+
+
+
+
+
+
+
+
+
+<!--
+              <span class="page-link">
+
+
+
+<div id="google_translate_element" style="display: none;">
+</div>
+
+<span class="ct-language">
+  <ul class="list-unstyled ct-language-dropdown">
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="en">
+          
+          <img src="https://cdn.countryflags.com/thumbs/united-states-of-america/flag-400.png" title="English">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="fr">
+          
+          <img src="https://cdn.countryflags.com/thumbs/france/flag-400.png" title="French">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="zh-CN">
+          
+          <img src="https://cdn.countryflags.com/thumbs/china/flag-400.png" title="Chinese(Simple)">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ja">
+          
+          <img src="https://cdn.countryflags.com/thumbs/japan/flag-400.png" title="Japanese">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ko">
+          
+          <img src="https://cdn.countryflags.com/thumbs/south-korea/flag-400.png" title="Korean">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ru">
+          
+          <img src="https://cdn.countryflags.com/thumbs/russia/flag-400.png" title="Russian">
+          
+        </a>
+      </li>
+    
+  </ul>
+</span>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'ko',
+    autoDisplay: false,
+    layout: google.translate.TranslateElement.InlineLayout.VERTICAL
+  }, 'google_translate_element');
+
+  // Links to cross-origin destinations are unsafe
+  var gll = document.getElementsByClassName('goog-logo-link')[0];
+  if (gll) {
+    gll.setAttribute('rel', 'noopener');
+  }
+
+  function restoreLang() {
+    var iframe = document.getElementsByClassName('goog-te-banner-frame')[0];
+    if (!iframe) return;
+
+    var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    var restore_el = innerDoc.getElementsByTagName("button");
+
+    for (var i = 0; i < restore_el.length; i++) {
+      if (restore_el[i].id.indexOf("restore") >= 0) {
+        restore_el[i].click();
+        var close_el = innerDoc.getElementsByClassName("goog-close-link");
+        close_el[0].click();
+        return;
+      }
+    }
+  }
+
+  function triggerHtmlEvent(element, eventName) {
+    var event;
+    if (document.createEvent) {
+      event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    } else {
+      event = document.createEventObject();
+      event.eventType = eventName;
+      element.fireEvent('on' + event.eventType, event);
+    }
+  }
+
+  var googleCombo = document.querySelector("select.goog-te-combo");
+  var langSelect = document.querySelector('.ct-language');
+  langSelect.addEventListener('click', function(event) {
+    if (!event.target) {
+      return;
+    }
+
+    var selected = document.querySelector('.ct-language .ct-language-selected');
+    if (selected) {
+      selected.classList.remove('ct-language-selected');
+    }
+
+    var target = event.target;
+    while (target && target !== langSelect ) {
+      if (target.matches('.lang-select')) {
+        break;
+      }
+      target = target.parentElement;
+    }
+
+    if (target && target.matches('.lang-select')) {
+      var lang = target.getAttribute('data-lang');
+      if (googleCombo.value == lang) {
+        restoreLang();
+      } else {
+        target.parentElement.classList.add('ct-language-selected');
+        googleCombo.value = lang;
+        triggerHtmlEvent(googleCombo, 'change');
+      }
+    }
+
+    event.preventDefault();
+  });
+}
+</script>
+
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</span>
+              -->
+</div>
+        </nav>
+</div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('auto' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+
+
+
+
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">클린 코드 작성하기 - 우테코를 마치며</h1>
+  <h2 class="post-subtitle">우테코 6기 프리코스 마무리</h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2023-12-01T00:00:00+00:00" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-12-01
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> about 8 mins to read</span>
+  </p>
+<div class="post-tags">
+<a class="post-tag" href="/tags.html#%EC%9A%B0%ED%85%8C%EC%BD%94%ED%94%84%EB%A6%AC%EC%BD%94%EC%8A%A4">#우테코프리코스</a><a class="post-tag" href="/tags.html#%ED%81%B4%EB%A6%B0%EC%BD%94%EB%93%9C">#클린코드</a>
+</div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <h2 id="왜-클린코드가-중요할까">왜 클린코드가 중요할까</h2>
+<p>프로젝트를 진행하다 보면 다른 사람의 코드를 읽거나, 요구사항이 변하는 경우가 굉장히 많았다.
+4주간의 우테코 프리코스를 진행하는 중에도 <em>요구사항 변화에 대응할 수 있어야 한다</em>는 피드백이 있었다.</p>
+
+<p>하지만 코드를 기간에 쫓겨 작성하다 보면 깔끔한 코드에서 멀어지기도 하고,
+코드를 작성한 직후에는 어느 부분이 깔끔하지 않았는지 파악하기도 쉽지 않다.
+그래서 평소에 클린 코드를 작성하려고 노력해야 할 것이다.</p>
+
+<p>이번 우테코 과정 중에는 다른 사람들과 코드 리뷰를 하면서
+고칠 부분을 쉽게 찾을 수 있었고,
+덕분에 짧은 4주 동안 코드 스타일을 많이 변화시킬 수 있었던 것 같다.</p>
+
+<h2 id="문제의-부분들">문제의 부분들</h2>
+<p>1주 차에 작성했던 코드를 다시 보면서 부족했던 부분들을 찾아봤다.</p>
+
+<h3 id="주석보다-코드로-표현하기">주석보다 코드로 표현하기</h3>
+<p>코드만으로 나타내기 어려운 <em>작성한 의도</em>나 <em>주의할 부분</em>을 표현하기 위해서라도,
+주석을 작성하는 것은 중요한 일이라고 생각한다.
+라이브러리처럼 재사용 가능성이 높은 코드일수록 자세한 주석이 도움 되는 경우가 많을 것이다.</p>
+
+<p>하지만 주석에만 의존하는 대신, 우선 <strong>코드 자체를 알기 쉽게</strong> 작성하는 것을 우선시해야 한다.</p>
+
+<p>아래는 1주 차, 야구 게임 과제에서 작성했던 코드이다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Player</span> <span class="o">{</span>
+	<span class="c1">// 플레이어가 작성한 숫자 (예시: 123)</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">;</span>
+
+	<span class="cm">/**
+	 * 자신과 another 객체의 숫자값을 비교합니다.
+	 * 예시: 123과 192를 비교하면 1스트라이크 1볼을 반환합니다.
+	 *
+	 * @param another 비교할 대상
+	 * @return [strike 개수, ball 개수]를 나타내는 Result 객체
+	 */</span>
+	<span class="kd">public</span> <span class="nc">Result</span> <span class="nf">compareWith</span><span class="o">(</span><span class="nc">Player</span> <span class="n">another</span><span class="o">)</span> <span class="o">{</span>
+		<span class="kt">int</span> <span class="n">strike</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+		<span class="kt">int</span> <span class="n">ball</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+
+		<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">numbers</span><span class="o">.</span><span class="na">size</span><span class="o">();</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>  <span class="c1">// i번째 자리 숫자 확인</span>
+			<span class="kt">int</span> <span class="n">myNumber</span> <span class="o">=</span> <span class="n">numbers</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
+			<span class="kt">int</span> <span class="n">anotherNumberAt</span> <span class="o">=</span> <span class="n">another</span><span class="o">.</span><span class="na">containsNumber</span><span class="o">(</span><span class="n">myNumber</span><span class="o">);</span>
+			<span class="k">if</span> <span class="o">(</span><span class="n">anotherNumberAt</span> <span class="o">==</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// strike</span>
+				<span class="n">strike</span><span class="o">++;</span>
+			<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">anotherNumberAt</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// ball</span>
+				<span class="n">ball</span><span class="o">++;</span>
+			<span class="o">}</span>
+		<span class="o">}</span>
+		<span class="k">return</span> <span class="k">new</span> <span class="nf">Result</span><span class="o">(</span><span class="n">strike</span><span class="o">,</span> <span class="n">ball</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>그리고 이쪽은 4주 차, 크리스마스 프로모션 과제에서 작성했던 코드이다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 현재 이벤트의 혜택을 받을 수 있는지 판단합니다.</span>
+<span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">isEligible</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Event</span><span class="o">.</span><span class="na">isEligibleForEntireEvent</span><span class="o">(</span><span class="n">orders</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+			<span class="n">day</span><span class="o">.</span><span class="na">isDayAfter</span><span class="o">(</span><span class="no">DAY_WHEN_EVENT_ENDS</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="c1">// 전체 이벤트에 참여하기 위한 최소 조건</span>
+<span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isEligibleForEntireEvent</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="n">orders</span><span class="o">.</span><span class="na">calculateEntirePrice</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="no">MINIMUM_PURCHASE_FOR_ENTIRE_EVENT</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>위쪽 코드도 주석이 있다면 이해하기 어려운 코드는 아니라고 생각하지만,
+아래쪽 코드가 직관적으로 빠르게 파악하기 쉽다.
+메서드를 분리하여 최대한 작은 책임을 지게 하였고, 자세하게 이름을 달아 줬다.
+덕분에 단위 별로 테스트하기도 편해졌고, 이후 변경 사항에도 대처하기 쉬울 것이다.</p>
+
+<h3 id="else-제거하기">else 제거하기</h3>
+<p>무분별한 else 구문을 지양해야 하는 이유 역시
+코드를 읽기 어렵게 만들고,
+디버깅을 어렵게 만들어 유지보수가 힘들어지기 때문이다.</p>
+
+<p>다시 한번 1주 차 코드를 소개한다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * 투수 객체와 타사 객체를 비교한 결과를 출력합니다.
+ *
+ * @param result 스트라이크 수, 볼 수를 담은 Result 레코드
+ */</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">printResult</span><span class="o">(</span><span class="nc">Result</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">"%d볼 %d스트라이크\n"</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">());</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">"%d스트라이크\n"</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">());</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">"%d볼\n"</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">());</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"낫싱"</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>반복적인 부분이 많아서, 출력 요구사항이 변하거나 조건이 변한다면
+여러 부분을 변경할 가능성이 높다.
+조건이 많아질수록 분기는 복잡해지고, 실수하기 쉬워질 것이다.</p>
+
+<p>4주 차 코드에서는 if-else를 나열하여 입력값을 검증하는 대신,
+별도의 검증 메서드로 분리하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="nc">EntireOrder</span> <span class="nf">readOrders</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="n">validateRegex</span><span class="o">(</span><span class="n">line</span><span class="o">);</span>
+
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Order</span><span class="o">&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="nc">Arrays</span><span class="o">.</span><span class="na">stream</span><span class="o">(</span><span class="n">line</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="no">ORDER_SEPARATOR</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="nl">MenuReader:</span><span class="o">:</span><span class="n">readSingleOrder</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">toList</span><span class="o">();</span>
+
+	<span class="n">validateOrdersAreDistinct</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="n">validateOrdersSize</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="n">validateOrdersHaveNonDrinkMenu</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+
+	<span class="k">return</span> <span class="k">new</span> <span class="nf">EntireOrder</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="c1">// 예시</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">validatePattern</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(!</span><span class="n">line</span><span class="o">.</span><span class="na">matches</span><span class="o">(</span><span class="s">"^(.+-\\d+,)*.+-\\d+$"</span><span class="o">))</span> <span class="o">{</span>
+		<span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="no">MENU_EXCEPTION</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>다른 부분에서도 early return을 사용하고,
+메서드를 분리하여 가독성을 높였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 전</span>
+<span class="kd">public</span> <span class="nc">Integer</span> <span class="nf">getEventBenefitAmount</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(</span><span class="nc">Event</span><span class="o">.</span><span class="na">isEligibleForEntireEvent</span><span class="o">(</span><span class="n">orders</span><span class="o">))</span> <span class="o">{</span>
+		<span class="k">if</span> <span class="o">(</span><span class="n">orders</span><span class="o">.</span><span class="na">calculateEntirePrice</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="no">MINIMUM_PURCHASE</span><span class="o">)</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">CHAMPAGNE</span><span class="o">.</span><span class="na">getPrice</span><span class="o">();</span>
+		<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+		<span class="o">}</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 후</span>
+<span class="kd">public</span> <span class="nc">Integer</span> <span class="nf">getEventBenefitAmount</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(!</span><span class="n">isEligible</span><span class="o">(</span><span class="n">orders</span><span class="o">,</span> <span class="n">day</span><span class="o">))</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+	<span class="o">}</span>
+	<span class="k">return</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">CHAMPAGNE</span><span class="o">.</span><span class="na">getPrice</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">isEligible</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Event</span><span class="o">.</span><span class="na">isEligibleForEntireEvent</span><span class="o">(</span><span class="n">orders</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+		<span class="n">orders</span><span class="o">.</span><span class="na">calculateEntirePrice</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="no">MINIMUM_PURCHASE</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>덕분에 각 조건이 무슨 의미를 가지는지 파악하기 쉬워졌고,
+단위 테스트를 쉽게 작성할 수 있었다.</p>
+
+<h2 id="무리한-리팩토링도-문제다">무리한 리팩토링도 문제다</h2>
+<p>한편 너무 리팩토링에만 집중한 나머지, 오히려 알기 어려워진 부분도 있었다.
+예를 들자면, 3주 차에는 <a href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto">DTO 패턴</a>을 배워 사용했다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LottoDto</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">String</span> <span class="n">numbers</span><span class="o">;</span>
+
+    <span class="kd">private</span> <span class="nf">LottoDto</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">numbers</span> <span class="o">=</span> <span class="n">lotto</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">LottoDto</span> <span class="nf">from</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">LottoDto</span><span class="o">(</span><span class="n">lotto</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">numbers</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>DTO는 <strong>모델과 뷰의 결합을 줄이기 위해</strong> 사용하는 것이지만,
+내가 작성한 코드에서는 그렇지 않았다.
+사용하는 이유를 잘 모르고 단순히 편하게 toString을 정의한 뒤
+내부 로직, 테스팅, 출력 등 많은 부분에서 사용했다.</p>
+
+<p>겉보기에는 코드가 단순했지만, 한 곳에서의 변경이 여러 부분에 영향을 주게 되었다.
+4주 차 피드백에서도 이 내용을 확인할 수 있었다.
+바로 <em>단일 책임의 원칙</em>을 지키고,
+비즈니스 로직과 UI 로직을 하나의 클래스/메서드가 담당하지 않도록 하라는 것이었다.</p>
+
+<p>즉 왜 리팩토링이 필요한지 이유를 알고 필요한 장소를 잘 파악하는 것이 중요할 것이다.</p>
+
+<h2 id="마치며">마치며</h2>
+<p>지금까지 우테코 프리코스를 진행하면서 배운 내용들 중에,
+클린 코드 관련해 기억에 남는 부분을 정리했다.</p>
+
+<p>어떻게 좋은 코드를 만들 수 있는지
+위 내용 외에도 소통할 기회가 있었고,
+그중 편하게 중복을 제거하고 객체 지향적인 코드를 짤 수 있게 도와주는
+스프링에 대해 소개받을 수 있었다.</p>
+
+<p>우테코를 더 길게 진행할 수 있었다면 좋았겠지만,
+그렇지 않더라도 스프링을 공부하면서
+클린 코드를 만들기 위해 노력해 보려 한다.</p>
+
+
+    </div>
+
+</article>
+<div class="post-nav">
+<a class="previous" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html" title="좋은 단위 테스트 작성하기">좋은 단위 테스트 작성하기</a><span></span>
+</div>
+    <div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/1-woowacourse-pre3-composition.html" title="상속과 조합 클래스">상속과 조합 클래스</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html" title="좋은 단위 테스트 작성하기">좋은 단위 테스트 작성하기</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/2-woowacourse-pre3-factory.html" title="생성자를 숨기는 팩토리 메서드">생성자를 숨기는 팩토리 메서드</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html" title="MVC 패턴으로 작성하기">MVC 패턴으로 작성하기</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto.html" title="캡슐화를 돕는 DTO 사용기">캡슐화를 돕는 DTO 사용기</a></li>
+        
+      </ul>
+    </div>
+    <div class="post-comments">
+<div id="utterances-placeholder"></div>
+<script>
+  const utterancesThemeFromDataTheme = () => {
+    const dataTheme = document.documentElement.getAttribute('data-theme');
+    return `github-${dataTheme}`;
+  };
+
+  const setUtterancesTheme = () => {
+    const iframe = document.querySelector('.utterances-frame');
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: utterancesThemeFromDataTheme()
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es');
+    }
+  }
+
+  // dynamic change
+  const observer = new MutationObserver((mutationsList, observer) => {
+    for (let mutation of mutationsList) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        setUtterancesTheme();
+      }
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true, childList: false, subtree: false });
+
+  let utterancesScript = document.createElement('script');
+  utterancesScript.async = true;
+  utterancesScript.src = 'https://utteranc.es/client.js';
+  utterancesScript.crossOrigin = 'anonymous';
+  utterancesScript.setAttribute('issue-term', 'title');
+  utterancesScript.setAttribute('label', '💬');
+  utterancesScript.setAttribute('repo', 'metishonora/metishonora');
+  utterancesScript.setAttribute('theme', utterancesThemeFromDataTheme());
+
+  const placeholder = document.getElementById('utterances-placeholder');
+  placeholder.parentNode.replaceChild(utterancesScript, placeholder);
+</script>
+</div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">목차</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+<div>
+<span class="copyleft">©</span> 2024 S G Kim</div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="https://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div class="footer-col rss-subscribe">Subscribe <a href="/feed.xml">via RSS</a>
+</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

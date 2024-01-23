@@ -1,0 +1,1014 @@
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" xml:lang="ko"><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://metishonora.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://metishonora.github.io/" rel="alternate" type="text/html" hreflang="ko" /><updated>2024-01-23T15:18:57+00:00</updated><id>https://metishonora.github.io/feed.xml</id><title type="html">README.md</title><subtitle>개발하며 배운 것들을 기록하기 위한 README 파일.</subtitle><author><name>S G Kim</name></author><entry><title type="html">클린 코드 작성하기 - 우테코를 마치며</title><link href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html" rel="alternate" type="text/html" title="클린 코드 작성하기 - 우테코를 마치며" /><published>2023-12-01T00:00:00+00:00</published><updated>2023-12-01T00:00:00+00:00</updated><id>https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize</id><content type="html" xml:base="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html"><![CDATA[<h2 id="왜-클린코드가-중요할까">왜 클린코드가 중요할까</h2>
+<p>프로젝트를 진행하다 보면 다른 사람의 코드를 읽거나, 요구사항이 변하는 경우가 굉장히 많았다.
+4주간의 우테코 프리코스를 진행하는 중에도 <em>요구사항 변화에 대응할 수 있어야 한다</em>는 피드백이 있었다.</p>
+
+<p>하지만 코드를 기간에 쫓겨 작성하다 보면 깔끔한 코드에서 멀어지기도 하고,
+코드를 작성한 직후에는 어느 부분이 깔끔하지 않았는지 파악하기도 쉽지 않다.
+그래서 평소에 클린 코드를 작성하려고 노력해야 할 것이다.</p>
+
+<p>이번 우테코 과정 중에는 다른 사람들과 코드 리뷰를 하면서
+고칠 부분을 쉽게 찾을 수 있었고,
+덕분에 짧은 4주 동안 코드 스타일을 많이 변화시킬 수 있었던 것 같다.</p>
+
+<h2 id="문제의-부분들">문제의 부분들</h2>
+<p>1주 차에 작성했던 코드를 다시 보면서 부족했던 부분들을 찾아봤다.</p>
+
+<h3 id="주석보다-코드로-표현하기">주석보다 코드로 표현하기</h3>
+<p>코드만으로 나타내기 어려운 <em>작성한 의도</em>나 <em>주의할 부분</em>을 표현하기 위해서라도,
+주석을 작성하는 것은 중요한 일이라고 생각한다.
+라이브러리처럼 재사용 가능성이 높은 코드일수록 자세한 주석이 도움 되는 경우가 많을 것이다.</p>
+
+<p>하지만 주석에만 의존하는 대신, 우선 <strong>코드 자체를 알기 쉽게</strong> 작성하는 것을 우선시해야 한다.</p>
+
+<p>아래는 1주 차, 야구 게임 과제에서 작성했던 코드이다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Player</span> <span class="o">{</span>
+	<span class="c1">// 플레이어가 작성한 숫자 (예시: 123)</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">;</span>
+
+	<span class="cm">/**
+	 * 자신과 another 객체의 숫자값을 비교합니다.
+	 * 예시: 123과 192를 비교하면 1스트라이크 1볼을 반환합니다.
+	 *
+	 * @param another 비교할 대상
+	 * @return [strike 개수, ball 개수]를 나타내는 Result 객체
+	 */</span>
+	<span class="kd">public</span> <span class="nc">Result</span> <span class="nf">compareWith</span><span class="o">(</span><span class="nc">Player</span> <span class="n">another</span><span class="o">)</span> <span class="o">{</span>
+		<span class="kt">int</span> <span class="n">strike</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+		<span class="kt">int</span> <span class="n">ball</span> <span class="o">=</span> <span class="mi">0</span><span class="o">;</span>
+
+		<span class="k">for</span> <span class="o">(</span><span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mi">1</span><span class="o">;</span> <span class="n">i</span> <span class="o">&lt;=</span> <span class="n">numbers</span><span class="o">.</span><span class="na">size</span><span class="o">();</span> <span class="n">i</span><span class="o">++)</span> <span class="o">{</span>  <span class="c1">// i번째 자리 숫자 확인</span>
+			<span class="kt">int</span> <span class="n">myNumber</span> <span class="o">=</span> <span class="n">numbers</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="o">);</span>
+			<span class="kt">int</span> <span class="n">anotherNumberAt</span> <span class="o">=</span> <span class="n">another</span><span class="o">.</span><span class="na">containsNumber</span><span class="o">(</span><span class="n">myNumber</span><span class="o">);</span>
+			<span class="k">if</span> <span class="o">(</span><span class="n">anotherNumberAt</span> <span class="o">==</span> <span class="n">i</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// strike</span>
+				<span class="n">strike</span><span class="o">++;</span>
+			<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">anotherNumberAt</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// ball</span>
+				<span class="n">ball</span><span class="o">++;</span>
+			<span class="o">}</span>
+		<span class="o">}</span>
+		<span class="k">return</span> <span class="k">new</span> <span class="nf">Result</span><span class="o">(</span><span class="n">strike</span><span class="o">,</span> <span class="n">ball</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>그리고 이쪽은 4주 차, 크리스마스 프로모션 과제에서 작성했던 코드이다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 현재 이벤트의 혜택을 받을 수 있는지 판단합니다.</span>
+<span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">isEligible</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Event</span><span class="o">.</span><span class="na">isEligibleForEntireEvent</span><span class="o">(</span><span class="n">orders</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+			<span class="n">day</span><span class="o">.</span><span class="na">isDayAfter</span><span class="o">(</span><span class="no">DAY_WHEN_EVENT_ENDS</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="c1">// 전체 이벤트에 참여하기 위한 최소 조건</span>
+<span class="kd">static</span> <span class="kt">boolean</span> <span class="nf">isEligibleForEntireEvent</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="n">orders</span><span class="o">.</span><span class="na">calculateEntirePrice</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="no">MINIMUM_PURCHASE_FOR_ENTIRE_EVENT</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>위쪽 코드도 주석이 있다면 이해하기 어려운 코드는 아니라고 생각하지만,
+아래쪽 코드가 직관적으로 빠르게 파악하기 쉽다.
+메서드를 분리하여 최대한 작은 책임을 지게 하였고, 자세하게 이름을 달아 줬다.
+덕분에 단위 별로 테스트하기도 편해졌고, 이후 변경 사항에도 대처하기 쉬울 것이다.</p>
+
+<h3 id="else-제거하기">else 제거하기</h3>
+<p>무분별한 else 구문을 지양해야 하는 이유 역시
+코드를 읽기 어렵게 만들고,
+디버깅을 어렵게 만들어 유지보수가 힘들어지기 때문이다.</p>
+
+<p>다시 한번 1주 차 코드를 소개한다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/**
+ * 투수 객체와 타사 객체를 비교한 결과를 출력합니다.
+ *
+ * @param result 스트라이크 수, 볼 수를 담은 Result 레코드
+ */</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">printResult</span><span class="o">(</span><span class="nc">Result</span> <span class="n">result</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">"%d볼 %d스트라이크\n"</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">(),</span> <span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">());</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">"%d스트라이크\n"</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="na">strike</span><span class="o">());</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="k">if</span> <span class="o">(</span><span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">()</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">printf</span><span class="o">(</span><span class="s">"%d볼\n"</span><span class="o">,</span> <span class="n">result</span><span class="o">.</span><span class="na">ball</span><span class="o">());</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="s">"낫싱"</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>반복적인 부분이 많아서, 출력 요구사항이 변하거나 조건이 변한다면
+여러 부분을 변경할 가능성이 높다.
+조건이 많아질수록 분기는 복잡해지고, 실수하기 쉬워질 것이다.</p>
+
+<p>4주 차 코드에서는 if-else를 나열하여 입력값을 검증하는 대신,
+별도의 검증 메서드로 분리하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="nc">EntireOrder</span> <span class="nf">readOrders</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="n">validateRegex</span><span class="o">(</span><span class="n">line</span><span class="o">);</span>
+
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Order</span><span class="o">&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="nc">Arrays</span><span class="o">.</span><span class="na">stream</span><span class="o">(</span><span class="n">line</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="no">ORDER_SEPARATOR</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="nl">MenuReader:</span><span class="o">:</span><span class="n">readSingleOrder</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">toList</span><span class="o">();</span>
+
+	<span class="n">validateOrdersAreDistinct</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="n">validateOrdersSize</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="n">validateOrdersHaveNonDrinkMenu</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+
+	<span class="k">return</span> <span class="k">new</span> <span class="nf">EntireOrder</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="c1">// 예시</span>
+<span class="kd">private</span> <span class="kd">static</span> <span class="kt">void</span> <span class="nf">validatePattern</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(!</span><span class="n">line</span><span class="o">.</span><span class="na">matches</span><span class="o">(</span><span class="s">"^(.+-\\d+,)*.+-\\d+$"</span><span class="o">))</span> <span class="o">{</span>
+		<span class="k">throw</span> <span class="k">new</span> <span class="nf">IllegalArgumentException</span><span class="o">(</span><span class="no">MENU_EXCEPTION</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>다른 부분에서도 early return을 사용하고,
+메서드를 분리하여 가독성을 높였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 전</span>
+<span class="kd">public</span> <span class="nc">Integer</span> <span class="nf">getEventBenefitAmount</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(</span><span class="nc">Event</span><span class="o">.</span><span class="na">isEligibleForEntireEvent</span><span class="o">(</span><span class="n">orders</span><span class="o">))</span> <span class="o">{</span>
+		<span class="k">if</span> <span class="o">(</span><span class="n">orders</span><span class="o">.</span><span class="na">calculateEntirePrice</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="no">MINIMUM_PURCHASE</span><span class="o">)</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">CHAMPAGNE</span><span class="o">.</span><span class="na">getPrice</span><span class="o">();</span>
+		<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+		<span class="o">}</span>
+	<span class="o">}</span> <span class="k">else</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 후</span>
+<span class="kd">public</span> <span class="nc">Integer</span> <span class="nf">getEventBenefitAmount</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">if</span> <span class="o">(!</span><span class="n">isEligible</span><span class="o">(</span><span class="n">orders</span><span class="o">,</span> <span class="n">day</span><span class="o">))</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="mi">0</span><span class="o">;</span>
+	<span class="o">}</span>
+	<span class="k">return</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">CHAMPAGNE</span><span class="o">.</span><span class="na">getPrice</span><span class="o">();</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">isEligible</span><span class="o">(</span><span class="nc">EntireOrder</span> <span class="n">orders</span><span class="o">,</span> <span class="nc">Day</span> <span class="n">day</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Event</span><span class="o">.</span><span class="na">isEligibleForEntireEvent</span><span class="o">(</span><span class="n">orders</span><span class="o">)</span> <span class="o">&amp;&amp;</span>
+		<span class="n">orders</span><span class="o">.</span><span class="na">calculateEntirePrice</span><span class="o">()</span> <span class="o">&gt;=</span> <span class="no">MINIMUM_PURCHASE</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>덕분에 각 조건이 무슨 의미를 가지는지 파악하기 쉬워졌고,
+단위 테스트를 쉽게 작성할 수 있었다.</p>
+
+<h2 id="무리한-리팩토링도-문제다">무리한 리팩토링도 문제다</h2>
+<p>한편 너무 리팩토링에만 집중한 나머지, 오히려 알기 어려워진 부분도 있었다.
+예를 들자면, 3주 차에는 <a href="/우테코/2023/11/07/2-woowacourse-pre3-dto">DTO 패턴</a>을 배워 사용했다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LottoDto</span> <span class="o">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="nc">String</span> <span class="n">numbers</span><span class="o">;</span>
+
+    <span class="kd">private</span> <span class="nf">LottoDto</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">)</span> <span class="o">{</span>
+        <span class="n">numbers</span> <span class="o">=</span> <span class="n">lotto</span><span class="o">.</span><span class="na">toString</span><span class="o">();</span>
+    <span class="o">}</span>
+
+    <span class="kd">public</span> <span class="kd">static</span> <span class="nc">LottoDto</span> <span class="nf">from</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">)</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="k">new</span> <span class="nf">LottoDto</span><span class="o">(</span><span class="n">lotto</span><span class="o">);</span>
+    <span class="o">}</span>
+
+    <span class="nd">@Override</span>
+    <span class="kd">public</span> <span class="nc">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+        <span class="k">return</span> <span class="n">numbers</span><span class="o">;</span>
+    <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>DTO는 <strong>모델과 뷰의 결합을 줄이기 위해</strong> 사용하는 것이지만,
+내가 작성한 코드에서는 그렇지 않았다.
+사용하는 이유를 잘 모르고 단순히 편하게 toString을 정의한 뒤
+내부 로직, 테스팅, 출력 등 많은 부분에서 사용했다.</p>
+
+<p>겉보기에는 코드가 단순했지만, 한 곳에서의 변경이 여러 부분에 영향을 주게 되었다.
+4주 차 피드백에서도 이 내용을 확인할 수 있었다.
+바로 <em>단일 책임의 원칙</em>을 지키고,
+비즈니스 로직과 UI 로직을 하나의 클래스/메서드가 담당하지 않도록 하라는 것이었다.</p>
+
+<p>즉 왜 리팩토링이 필요한지 이유를 알고 필요한 장소를 잘 파악하는 것이 중요할 것이다.</p>
+
+<h2 id="마치며">마치며</h2>
+<p>지금까지 우테코 프리코스를 진행하면서 배운 내용들 중에,
+클린 코드 관련해 기억에 남는 부분을 정리했다.</p>
+
+<p>어떻게 좋은 코드를 만들 수 있는지
+위 내용 외에도 소통할 기회가 있었고,
+그중 편하게 중복을 제거하고 객체 지향적인 코드를 짤 수 있게 도와주는
+스프링에 대해 소개받을 수 있었다.</p>
+
+<p>우테코를 더 길게 진행할 수 있었다면 좋았겠지만,
+그렇지 않더라도 스프링을 공부하면서
+클린 코드를 만들기 위해 노력해 보려 한다.</p>]]></content><author><name>Metishonora</name></author><category term="우테코" /><category term="우테코프리코스" /><category term="클린코드" /><summary type="html"><![CDATA[왜 클린코드가 중요할까 프로젝트를 진행하다 보면 다른 사람의 코드를 읽거나, 요구사항이 변하는 경우가 굉장히 많았다. 4주간의 우테코 프리코스를 진행하는 중에도 요구사항 변화에 대응할 수 있어야 한다는 피드백이 있었다. 하지만 코드를 기간에 쫓겨 작성하다 보면 깔끔한 코드에서 멀어지기도 하고, 코드를 작성한 직후에는 어느 부분이 깔끔하지 않았는지 파악하기도 쉽지 않다. 그래서 평소에 클린 코드를 작성하려고 노력해야 할 것이다. 이번 우테코 과정 중에는 다른 사람들과 코드 리뷰를 하면서 고칠 부분을 쉽게 찾을 수 있었고, 덕분에 짧은 4주 동안 코드 스타일을 많이 변화시킬 수 있었던 것 같다. 문제의 부분들 1주 차에 작성했던 코드를 다시 보면서 부족했던 부분들을 찾아봤다. 주석보다 코드로 표현하기 코드만으로 나타내기 어려운 작성한 의도나 주의할 부분을 표현하기 위해서라도, 주석을 작성하는 것은 중요한 일이라고 생각한다. 라이브러리처럼 재사용 가능성이 높은 코드일수록 자세한 주석이 도움 되는 경우가 많을 것이다. 하지만 주석에만 의존하는 대신, 우선 코드 자체를 알기 쉽게 작성하는 것을 우선시해야 한다. 아래는 1주 차, 야구 게임 과제에서 작성했던 코드이다. public class Player { // 플레이어가 작성한 숫자 (예시: 123) private final List&lt;Integer&gt; numbers; /** * 자신과 another 객체의 숫자값을 비교합니다. * 예시: 123과 192를 비교하면 1스트라이크 1볼을 반환합니다. * * @param another 비교할 대상 * @return [strike 개수, ball 개수]를 나타내는 Result 객체 */ public Result compareWith(Player another) { int strike = 0; int ball = 0; for (int i = 1; i &lt;= numbers.size(); i++) { // i번째 자리 숫자 확인 int myNumber = numbers.get(i - 1); int anotherNumberAt = another.containsNumber(myNumber); if (anotherNumberAt == i) { // strike strike++; } else if (anotherNumberAt &gt; 0) { // ball ball++; } } return new Result(strike, ball); } } 그리고 이쪽은 4주 차, 크리스마스 프로모션 과제에서 작성했던 코드이다. // 현재 이벤트의 혜택을 받을 수 있는지 판단합니다. public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; day.isDayAfter(DAY_WHEN_EVENT_ENDS); } // 전체 이벤트에 참여하기 위한 최소 조건 static boolean isEligibleForEntireEvent(EntireOrder orders) { return orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE_FOR_ENTIRE_EVENT; } 위쪽 코드도 주석이 있다면 이해하기 어려운 코드는 아니라고 생각하지만, 아래쪽 코드가 직관적으로 빠르게 파악하기 쉽다. 메서드를 분리하여 최대한 작은 책임을 지게 하였고, 자세하게 이름을 달아 줬다. 덕분에 단위 별로 테스트하기도 편해졌고, 이후 변경 사항에도 대처하기 쉬울 것이다. else 제거하기 무분별한 else 구문을 지양해야 하는 이유 역시 코드를 읽기 어렵게 만들고, 디버깅을 어렵게 만들어 유지보수가 힘들어지기 때문이다. 다시 한번 1주 차 코드를 소개한다. /** * 투수 객체와 타사 객체를 비교한 결과를 출력합니다. * * @param result 스트라이크 수, 볼 수를 담은 Result 레코드 */ public static void printResult(Result result) { if (result.strike() &gt; 0 &amp;&amp; result.ball() &gt; 0) { System.out.printf("%d볼 %d스트라이크\n", result.strike(), result.ball()); } else if (result.strike() &gt; 0) { System.out.printf("%d스트라이크\n", result.strike()); } else if (result.ball() &gt; 0) { System.out.printf("%d볼\n", result.ball()); } else { System.out.println("낫싱"); } } 반복적인 부분이 많아서, 출력 요구사항이 변하거나 조건이 변한다면 여러 부분을 변경할 가능성이 높다. 조건이 많아질수록 분기는 복잡해지고, 실수하기 쉬워질 것이다. 4주 차 코드에서는 if-else를 나열하여 입력값을 검증하는 대신, 별도의 검증 메서드로 분리하였다. public static EntireOrder readOrders(String line) { validateRegex(line); List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); validateOrdersAreDistinct(orders); validateOrdersSize(orders); validateOrdersHaveNonDrinkMenu(orders); return new EntireOrder(orders); } // 예시 private static void validatePattern(String line) { if (!line.matches("^(.+-\\d+,)*.+-\\d+$")) { throw new IllegalArgumentException(MENU_EXCEPTION); } } 다른 부분에서도 early return을 사용하고, 메서드를 분리하여 가독성을 높였다. // 전 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (Event.isEligibleForEntireEvent(orders)) { if (orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE) { return Drink.CHAMPAGNE.getPrice(); } else { return 0; } } else { return 0; } } // 후 public Integer getEventBenefitAmount(EntireOrder orders, Day day) { if (!isEligible(orders, day)) { return 0; } return Drink.CHAMPAGNE.getPrice(); } public boolean isEligible(EntireOrder orders, Day day) { return Event.isEligibleForEntireEvent(orders) &amp;&amp; orders.calculateEntirePrice() &gt;= MINIMUM_PURCHASE; } 덕분에 각 조건이 무슨 의미를 가지는지 파악하기 쉬워졌고, 단위 테스트를 쉽게 작성할 수 있었다. 무리한 리팩토링도 문제다 한편 너무 리팩토링에만 집중한 나머지, 오히려 알기 어려워진 부분도 있었다. 예를 들자면, 3주 차에는 DTO 패턴을 배워 사용했다. public class LottoDto { private final String numbers; private LottoDto(Lotto lotto) { numbers = lotto.toString(); } public static LottoDto from(Lotto lotto) { return new LottoDto(lotto); } @Override public String toString() { return numbers; } } DTO는 모델과 뷰의 결합을 줄이기 위해 사용하는 것이지만, 내가 작성한 코드에서는 그렇지 않았다. 사용하는 이유를 잘 모르고 단순히 편하게 toString을 정의한 뒤 내부 로직, 테스팅, 출력 등 많은 부분에서 사용했다. 겉보기에는 코드가 단순했지만, 한 곳에서의 변경이 여러 부분에 영향을 주게 되었다. 4주 차 피드백에서도 이 내용을 확인할 수 있었다. 바로 단일 책임의 원칙을 지키고, 비즈니스 로직과 UI 로직을 하나의 클래스/메서드가 담당하지 않도록 하라는 것이었다. 즉 왜 리팩토링이 필요한지 이유를 알고 필요한 장소를 잘 파악하는 것이 중요할 것이다. 마치며 지금까지 우테코 프리코스를 진행하면서 배운 내용들 중에, 클린 코드 관련해 기억에 남는 부분을 정리했다. 어떻게 좋은 코드를 만들 수 있는지 위 내용 외에도 소통할 기회가 있었고, 그중 편하게 중복을 제거하고 객체 지향적인 코드를 짤 수 있게 도와주는 스프링에 대해 소개받을 수 있었다. 우테코를 더 길게 진행할 수 있었다면 좋았겠지만, 그렇지 않더라도 스프링을 공부하면서 클린 코드를 만들기 위해 노력해 보려 한다.]]></summary></entry><entry><title type="html">좋은 단위 테스트 작성하기</title><link href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html" rel="alternate" type="text/html" title="좋은 단위 테스트 작성하기" /><published>2023-11-26T00:00:00+00:00</published><updated>2023-11-26T00:00:00+00:00</updated><id>https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test</id><content type="html" xml:base="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html"><![CDATA[<h2 id="공통-피드백">공통 피드백</h2>
+<p>우테코 3주차를 마치고 제공받은 공통 피드백 중, 관심사 분리와 테스트 작성에 관한 내용이
+눈에 띄었다.</p>
+
+<blockquote>
+  <ol>
+    <li>테스트하기 어려운 것은 객체 분리를 고민하라.</li>
+    <li>UI 로직이 아니라, 비즈니스 로직에 대한 단위 테스트를 작성하라.</li>
+    <li>테스트 코드도 코드이므로 리팩토링을 통해 개선해야 한다.</li>
+  </ol>
+</blockquote>
+
+<h2 id="돌아보는-3주차-코드">돌아보는 3주차 코드</h2>
+<p>3주차 과제에서 사용자에게 입력 받는 코드는 이렇게 구성했다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 컨트롤러</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Controller</span> <span class="o">{</span>
+	<span class="nc">Money</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+		<span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+			<span class="k">try</span> <span class="o">{</span>
+				<span class="c1">// 1000으로 나누어 떨어지지 않는 숫자일 경우,</span>
+				<span class="c1">// 양수가 아닌 경우,</span>
+				<span class="c1">// 숫자가 아닌 경우 예외를 던진다.</span>
+				<span class="k">return</span> <span class="k">new</span> <span class="nf">Money</span><span class="o">(</span><span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">());</span>
+			<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+				<span class="c1">// 에러 메시지 출력</span>
+			<span class="o">}</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// 뷰</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">InputView</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="nc">Integer</span> <span class="nf">requestInteger</span><span class="o">()</span> <span class="o">{</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="nc">Console</span><span class="o">.</span><span class="na">readLine</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="c1">// 에러 메시지 출력</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>컨트롤러가 실행하는 <em>requestMoney()</em> 메서드는 사용자에게 정수 하나를 입력받는다.
+이 때 잘못된 입력(정수가 아닌 입력, 범위를 벗어나는 정수 등)이 들어오면 에러 메시지를 출력하고 재시도한다.</p>
+
+<p>그런데 이 코드 구조는 테스트하기 어려웠다.
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG5wYXJ0aWNpcGFudCBEb21haW5cbnBhcnRpY2lwYW50IENvbnRyb2xsZXJcbnBhcnRpY2lwYW50IFZpZXdcbiUlLVxuQ29udHJvbGxlci0pVmlldzog7KCV7IiYIOyalOyyrVxuVmlldy0pQ29udHJvbGxlcjog7J6F66Cl6rCSIOqygOymnSDtm4QsIOygleyImCDqsJLrp4wg7KCE64usXG5Db250cm9sbGVyLSlEb21haW46IOyeheugpeqwkiDqsoDspp0g7ZuELCDsmKzrsJTrpbgg6rCS66eMIOyghOuLrCIsIm1lcm1haWQiOm51bGx9" />
+잘못된 입력 값을 넣었을 때 예외를 잘 던지는지, 올바른 값을 넣었을 때 반환 값은 일치하는지 검사하고 싶다.
+하지만 <em>requesInteger()</em> 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine()을 호출해 입력을 받는다.</p>
+
+<p>requestMoney() 메서드 역시 비슷한 방식이고, 심지어 원하는 입력을 받을 때까지 while문을 돌고 있다.</p>
+
+<p>물론 전체 프로젝트를 작성한 뒤에 손으로 직접 테스트는 할 수 있지만,
+해당 메서드만 따로 반복적으로 테스트하기 어렵다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"숫자가 아닌 구입 금액을 입력하는 경우"</span><span class="o">)</span>
+<span class="nd">@Test</span>
+<span class="kt">void</span> <span class="nf">requestIntegerTest</span><span class="o">()</span> <span class="o">{</span>
+	<span class="nc">InputView</span> <span class="n">inputView</span> <span class="o">=</span> <span class="nc">InputView</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
+	<span class="nc">String</span> <span class="n">input</span> <span class="o">=</span> <span class="s">"\n"</span><span class="o">;</span>
+	<span class="nc">InputStream</span> <span class="n">in</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ByteArrayInputStream</span><span class="o">(</span><span class="n">input</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+	<span class="nc">System</span><span class="o">.</span><span class="na">setIn</span><span class="o">(</span><span class="n">in</span><span class="o">);</span>
+	<span class="nc">OutputStream</span> <span class="n">out</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ByteArrayOutputStream</span><span class="o">();</span>
+	<span class="nc">System</span><span class="o">.</span><span class="na">setOut</span><span class="o">(</span><span class="k">new</span> <span class="nc">PrintStream</span><span class="o">(</span><span class="n">out</span><span class="o">));</span>
+
+	<span class="n">assertThatThrownBy</span><span class="o">(</span><span class="nl">inputView:</span><span class="o">:</span><span class="n">requestInteger</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"정수를 입력해야 합니다."</span><span class="o">);</span>
+
+	<span class="nc">Console</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>어쩔 수 없이 3주차 테스트 코드에서는 stdin에 특정 입력을 주고, requestInteger() 메서드를 실행했을 때
+stdout에서 원하는 출력이 나오는지 테스트하였다.
+피드백 2에서 언급하는, <strong>지양해야 할</strong> UI 로직 테스트라고 볼 수 있겠다.</p>
+
+<p>requestMoney() 메서드의 테스트는 작성하지 못했다. 잘못된 입력값만을 주면 반복문을 절대
+탈출할 수가 없으므로, 원하는 단위 테스트를 작성할 수가 없었다.</p>
+
+<h2 id="좋은-단위-테스트">좋은 단위 테스트</h2>
+<p>4주차 과제에서 어떻게 피드백을 반영해서 더 좋은 테스트를 만들었는지 소개하려고 한다.
+(이제 와서 3주차 코드를 보면 컨트롤러에서 입력값 유효성을 판단하는 것도 문제 같지만,
+이번 포스트에서는 다루지 않으려고 한다.)</p>
+
+<h3 id="메서드-분리하기">메서드 분리하기</h3>
+<p>이번 과제에는 문자열을 <em>메뉴이름-개수,메뉴이름-개수, …</em> 형식으로 입력받는 부분이 있었다.
+이때 입력 형식이 다르거나, 판매하지 않는 메뉴이거나, 개수가 적절하지 않으면 예외를 던지고 다시 입력받아야 했다.</p>
+
+<p>3주차처럼 이 요구사항 전체를 실행하는 메서드 <em>requestMenu()</em>를 만들면 테스트하기 어려울 것이다.
+좀 더 작은 단위로 쪼개면서 입출력을 확인하기 쉽도록 바꿔야 한다.</p>
+
+<p>먼저 stdin에서 입력을 받는 부분,
+그리고 성공적인 입력을 받을 때까지 반복하는 부분은 테스트하기 어렵다.
+이 두 부분을 메서드로 분리하고, 뷰에 위임하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">InputView</span> <span class="o">{</span>
+	<span class="c1">// 컨트롤러에서 호출할 함수</span>
+	<span class="kd">public</span> <span class="nc">EntireOrder</span> <span class="nf">requestOrders</span><span class="o">()</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="cm">/* 안내 메시지 출력 */</span> <span class="o">);</span>
+		<span class="k">return</span> <span class="nf">tryUnitilSuccessOrder</span><span class="o">();</span>
+	<span class="o">}</span>
+
+	<span class="kd">private</span> <span class="nc">EntireOrder</span> <span class="nf">tryUntilSuccessOrder</span><span class="o">()</span> <span class="o">{</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="c1">// 도메인에게 입력받은 문자열을 전달한다.</span>
+			<span class="c1">// 도메인에서 유효성 처리를 하고, 적절하지 않으면 에러를 던질 것이다.</span>
+			<span class="k">return</span> <span class="nc">MenuReader</span><span class="o">.</span><span class="na">readOrders</span><span class="o">(</span><span class="nc">Console</span><span class="o">.</span><span class="na">readLine</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="cm">/* 에러 메시지 출력 */</span> <span class="o">);</span>
+		<span class="o">}</span>
+		<span class="c1">// 에러가 던져졌으면 다시 한번 실행한다.</span>
+		<span class="k">return</span> <span class="nf">tryUntilSuccessOrder</span><span class="o">();</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>이 메서드에 대한 테스트는 작성하지 않을 것이다.
+내부 로직은 포함하지 않도록 하고, 최소한의 일만 하도록 분리한다.</p>
+
+<p>뷰 부분에 대한 테스트를 굳이 하지 않아도, 유효성을 검증하는 <em>MenuReader.readOrders()</em>가
+반복적으로 잘 작동하는지 확인하면 된다.</p>
+
+<p>readOrders() 메서드도 작은 단위로 쪼개서 테스트하기 쉽게 만든다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 입력 문자열: 메뉴이름1-개수1,메뉴이름2-개수2, ...</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">EntireOrder</span> <span class="nf">readOrders</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="c1">// 1. 정규식으로 형식 검증</span>
+	<span class="n">validatePattern</span><span class="o">(</span><span class="n">line</span><span class="o">);</span>
+
+	<span class="c1">// 2. , 문자 기준으로 split</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Order</span><span class="o">&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="nc">Arrays</span><span class="o">.</span><span class="na">stream</span><span class="o">(</span><span class="n">line</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="no">ORDER_SEPARATOR</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="nl">MenuReader:</span><span class="o">:</span><span class="n">readSingleOrder</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">toList</span><span class="o">();</span>
+
+	<span class="c1">// 6. 중복 메뉴 검증</span>
+	<span class="n">validateOrdersDistinct</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="c1">// 7. 전체 주문 개수 검증 (주문이 20개를 넘으면 무효)</span>
+	<span class="n">validateOrdersSize</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="c1">// 8. Drink 주문만 있으면 무효</span>
+	<span class="n">validateOrdersWithNonDrink</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+
+	<span class="k">return</span> <span class="k">new</span> <span class="nf">EntireOrder</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="c1">// 입력 문자열: 메뉴이름-개수</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">Order</span> <span class="nf">readSingleOrder</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="nc">String</span><span class="o">[]</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="no">MENU_SEPARATOR</span><span class="o">);</span>
+	<span class="c1">// 3. - 문자 기준으로 split</span>
+	<span class="n">validateTokenSize</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
+
+	<span class="c1">// 4. 메뉴 이름 검증</span>
+	<span class="nc">Menu</span> <span class="n">menu</span> <span class="o">=</span> <span class="n">readMenuName</span><span class="o">(</span><span class="n">tokens</span><span class="o">[</span><span class="mi">0</span><span class="o">]);</span>
+	<span class="c1">// 5. 개수 검증</span>
+	<span class="nc">Integer</span> <span class="n">count</span> <span class="o">=</span> <span class="n">readCount</span><span class="o">(</span><span class="n">tokens</span><span class="o">[</span><span class="mi">1</span><span class="o">]);</span>
+
+	<span class="k">return</span> <span class="k">new</span> <span class="nf">Order</span><span class="o">(</span><span class="n">menu</span><span class="o">,</span> <span class="n">count</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>이렇게 개별 기능을 처리하는 메서드를 따로 만들어주고, readOrders() 메서드는 개별 메서드를
+실행해주도록 만들었다.</p>
+
+<p>3주차 코드의 경우 모든 검증을 생성자에서 진행했지만,
+4주차 코드에서는 validate 메서드를 모두 분리하여 실행을 마친 후
+정상적인 입력값만 생성자로 넘겨주도록 변경하였다.</p>
+
+<p>예를 들어 <em>스테이크-1,케이크-2,콜라-3</em>이라는 전체 입력(<em>EntireOrder</em>)을 받아,
+각 주문(<em>Order</em>, 스테이크-1)을 파싱하고,
+메뉴 이름(<em>Menu</em>, 스테이크)을 파싱하는 부분(<em>4. 메뉴 이름 검증</em>)을 테스트하려고 한다.</p>
+
+<p><img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG4lJS1cbmNsYXNzIE1lbnUge1xuPDxpbnRlcmZhY2U-PlxuZ2V0TmFtZSgpXG5nZXRQcmljZSgpXG59XG5jbGFzcyBNYWluZGlzaCB7XG48PGVudW0-Plxu7Iqk7YWM7J207YGsXG7tjIzsiqTtg4Bcbn1cbmNsYXNzIERlc3NlcnQge1xuPDxlbnVtPj5cbuy8gOydtO2BrFxu7JWE7J207Iqk7YGs66a8XG59XG5jbGFzcyBEcmluayB7XG48PGVudW0-Plxu7L2c6528XG7smYDsnbhcbn1cbk1lbnUgPHwtLSBNYWluZGlzaFxuTWVudSA8fC0tIERlc3NlcnRcbk1lbnUgPHwtLSBEcmluayIsIm1lcm1haWQiOm51bGx9" /></p>
+
+<p>이런 식으로 클래스를 구성하고, 주어진 문자열과 일치하는 메뉴가 존재하면
+해당하는 Enum을 반환하는 메서드를 만들었다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="nc">Menu</span> <span class="nf">readMenuName</span><span class="o">(</span><span class="nc">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Stream</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="nc">Maindish</span><span class="o">.</span><span class="na">values</span><span class="o">(),</span> <span class="nc">Dessert</span><span class="o">.</span><span class="na">values</span><span class="o">(),</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">values</span><span class="o">())</span>
+			<span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="nl">Stream:</span><span class="o">:</span><span class="n">of</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span><span class="o">.</span><span class="na">getName</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">findFirst</span><span class="o">()</span>
+			<span class="o">.</span><span class="na">orElseThrow</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="no">MENU_EXCEPTION</span><span class="o">));</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>이제 이 메서드를 테스트하기는 쉽다. <em>메뉴이름-숫자</em> 부분에서 자른 메뉴이름 String을 입력으로 넣고,
+예상하는 객체가 반환되는지 혹은 적절히 예외를 던지는지 확인하면 된다.</p>
+
+<p>readOrders() 메서드의 다른 부분도 같은 방식으로 단위 기능을 만들고, 테스트를 작성하면 된다.</p>
+
+<h3 id="테스트-코드의-중복-제거">테스트 코드의 중복 제거</h3>
+<blockquote>
+  <p>테스트 코드도 코드이고, 리팩토링을 통해 개선해야 한다.
+특히 반복해서 실행하는 부분의 중복을 제거하라.
+<cite>3주차 공통 피드백</cite></p>
+</blockquote>
+
+<p>피드백에서는 중복을 제거하는 방법 중 하나로 <strong>ParameterizedTest</strong>를 소개했고,
+4주차 과제를 진행하면서 이것의 강력함을 맛볼 수 있었다.</p>
+
+<p>3주차 테스트 코드 일부를 소개한다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"중복 번호 확인"</span><span class="o">)</span>
+<span class="nd">@Test</span>
+<span class="kt">void</span> <span class="nf">checkDuplicatedNumbers</span><span class="o">()</span> <span class="o">{</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span> <span class="o">=</span> <span class="nc">List</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">);</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateAnswerLotto</span><span class="o">(</span><span class="n">numbers</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"중복된 번호가 존재합니다."</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>로또 번호로 사용할 숫자를 6개 입력받는데,
+중복 번호를 전달했을 경우 예외를 잘 던지는지 확인하는 테스트이다.
+이 코드에서 다른 번호를 테스트하고 싶다면, 똑같은 코드를 중복해서 넣어야 한다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"중복 번호 확인"</span><span class="o">)</span>
+<span class="nd">@Test</span>
+<span class="kt">void</span> <span class="nf">checkDuplicatedNumbers</span><span class="o">()</span> <span class="o">{</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span> <span class="o">=</span> <span class="nc">List</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">);</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers2</span> <span class="o">=</span> <span class="nc">List</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">6</span><span class="o">,</span> <span class="mi">7</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">);</span>
+	<span class="c1">// numbers3, numbers4, ...</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateAnswerLotto</span><span class="o">(</span><span class="n">numbers</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"중복된 번호가 존재합니다."</span><span class="o">);</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateAnswerLotto</span><span class="o">(</span><span class="n">numbers2</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"중복된 번호가 존재합니다."</span><span class="o">);</span>
+	<span class="c1">// assert number3, number4, ...</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Junit의 PamareterizedTest를 활용하면 코드 중복을 크게 줄일 수 있다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"입력 형식이 다른 주문"</span><span class="o">)</span>
+<span class="nd">@ValueSource</span><span class="o">(</span><span class="n">strings</span> <span class="o">=</span> <span class="o">{</span><span class="s">"양송이수프-1-2"</span><span class="o">,</span> <span class="s">"초코케이크 1"</span><span class="o">,</span> <span class="s">"-1"</span><span class="o">,</span> <span class="s">"5-바비큐립"</span><span class="o">,</span> <span class="s">"제로콜라--10"</span><span class="o">,</span> <span class="s">"제로콜라-"</span><span class="o">,</span> <span class="s">"타파스-1,,,"</span><span class="o">})</span>
+<span class="nd">@ParameterizedTest</span>
+<span class="kt">void</span> <span class="nf">illegalFormatOrder</span><span class="o">(</span><span class="nc">String</span> <span class="n">input</span><span class="o">)</span> <span class="o">{</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">MenuReader</span><span class="o">.</span><span class="na">readSingleOrder</span><span class="o">(</span><span class="n">input</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="no">MENU_EXCEPTION</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>특히 위에서 정규식을 활용해 입력 형식을 검증하는 부분이 있었는데,
+정규식을 정확히 작성했는지 검증하기 위해서 많은 입력값을 테스트해봐야 한다.
+여기서 중복 코드를 삽입하는 대신, 입력 문자열을 <strong>ValueSource</strong>로 제공하면
+JUnit이 각 파라미터를 자동으로 입력하여 테스트를 실행해준다.
+<img src="/assets/posts/231126-1.png" alt="test-result" /></p>
+
+<p><strong>MethodSource</strong>를 활용하면 출력값 역시 확인할 수 있다.
+아래는 readMenuName() 메서드가 맞는 클래스를 반환했는지 확인하는 테스트이다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">private</span> <span class="kd">static</span> <span class="nc">Stream</span><span class="o">&lt;</span><span class="nc">Arguments</span><span class="o">&gt;</span> <span class="nf">menuSubclassProvider</span><span class="o">()</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Stream</span><span class="o">.</span><span class="na">of</span><span class="o">(</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"양송이수프"</span><span class="o">,</span> <span class="nc">Appetizer</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"양송이수프"</span><span class="o">),</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"바비큐립"</span><span class="o">,</span> <span class="nc">Maindish</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"바비큐립"</span><span class="o">),</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"초코케이크"</span><span class="o">,</span> <span class="nc">Dessert</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"초코케이크"</span><span class="o">),</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"샴페인"</span><span class="o">,</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"샴페인"</span><span class="o">)</span>
+	<span class="o">);</span>
+<span class="o">}</span>
+
+<span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"정상 메뉴"</span><span class="o">)</span>
+<span class="nd">@MethodSource</span><span class="o">(</span><span class="s">"menuSubclassProvider"</span><span class="o">)</span>
+<span class="nd">@ParameterizedTest</span>
+<span class="kt">void</span> <span class="nf">normalMenu</span><span class="o">(</span><span class="nc">String</span> <span class="n">input</span><span class="o">,</span> <span class="nc">Class</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="nc">Menu</span><span class="o">&gt;</span> <span class="n">expectedClass</span><span class="o">,</span> <span class="nc">String</span> <span class="n">expectedName</span><span class="o">)</span> <span class="o">{</span>
+	<span class="nc">Menu</span> <span class="n">menu</span> <span class="o">=</span> <span class="nc">MenuReader</span><span class="o">.</span><span class="na">readMenuName</span><span class="o">(</span><span class="n">input</span><span class="o">);</span>
+	<span class="n">assertThat</span><span class="o">(</span><span class="n">expectedClass</span><span class="o">).</span><span class="na">isEqualTo</span><span class="o">(</span><span class="n">menu</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
+	<span class="n">assertThat</span><span class="o">(</span><span class="n">expectedName</span><span class="o">).</span><span class="na">isEqualTo</span><span class="o">(</span><span class="n">menu</span><span class="o">.</span><span class="na">getName</span><span class="o">());</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p><img src="/assets/posts/231126-2.png" alt="!test-result-2" /></p>
+
+<h2 id="마치며">마치며</h2>
+<p>이렇게 4주차에는 잘 분리된 단위 테스트를 만들면서 과제를 진행했는데,
+덕분에 생각지도 못했던 버그를 잡거나 편하게 리팩토링할 수 있었다.</p>]]></content><author><name>Metishonora</name></author><category term="우테코" /><category term="우테코프리코스" /><category term="테스트" /><summary type="html"><![CDATA[공통 피드백 우테코 3주차를 마치고 제공받은 공통 피드백 중, 관심사 분리와 테스트 작성에 관한 내용이 눈에 띄었다. 테스트하기 어려운 것은 객체 분리를 고민하라. UI 로직이 아니라, 비즈니스 로직에 대한 단위 테스트를 작성하라. 테스트 코드도 코드이므로 리팩토링을 통해 개선해야 한다. 돌아보는 3주차 코드 3주차 과제에서 사용자에게 입력 받는 코드는 이렇게 구성했다. // 컨트롤러 public class Controller { Money requestMoney() { while (true) { try { // 1000으로 나누어 떨어지지 않는 숫자일 경우, // 양수가 아닌 경우, // 숫자가 아닌 경우 예외를 던진다. return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } } // 뷰 public class InputView { public Integer requestInteger() { try { return Integer.parseInt(Console.readLine()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } 컨트롤러가 실행하는 requestMoney() 메서드는 사용자에게 정수 하나를 입력받는다. 이 때 잘못된 입력(정수가 아닌 입력, 범위를 벗어나는 정수 등)이 들어오면 에러 메시지를 출력하고 재시도한다. 그런데 이 코드 구조는 테스트하기 어려웠다. 잘못된 입력 값을 넣었을 때 예외를 잘 던지는지, 올바른 값을 넣었을 때 반환 값은 일치하는지 검사하고 싶다. 하지만 requesInteger() 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine()을 호출해 입력을 받는다. requestMoney() 메서드 역시 비슷한 방식이고, 심지어 원하는 입력을 받을 때까지 while문을 돌고 있다. 물론 전체 프로젝트를 작성한 뒤에 손으로 직접 테스트는 할 수 있지만, 해당 메서드만 따로 반복적으로 테스트하기 어렵다. @DisplayName("숫자가 아닌 구입 금액을 입력하는 경우") @Test void requestIntegerTest() { InputView inputView = InputView.getInstance(); String input = "\n"; InputStream in = new ByteArrayInputStream(input.getBytes()); System.setIn(in); OutputStream out = new ByteArrayOutputStream(); System.setOut(new PrintStream(out)); assertThatThrownBy(inputView::requestInteger) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("정수를 입력해야 합니다."); Console.close(); } 어쩔 수 없이 3주차 테스트 코드에서는 stdin에 특정 입력을 주고, requestInteger() 메서드를 실행했을 때 stdout에서 원하는 출력이 나오는지 테스트하였다. 피드백 2에서 언급하는, 지양해야 할 UI 로직 테스트라고 볼 수 있겠다. requestMoney() 메서드의 테스트는 작성하지 못했다. 잘못된 입력값만을 주면 반복문을 절대 탈출할 수가 없으므로, 원하는 단위 테스트를 작성할 수가 없었다. 좋은 단위 테스트 4주차 과제에서 어떻게 피드백을 반영해서 더 좋은 테스트를 만들었는지 소개하려고 한다. (이제 와서 3주차 코드를 보면 컨트롤러에서 입력값 유효성을 판단하는 것도 문제 같지만, 이번 포스트에서는 다루지 않으려고 한다.) 메서드 분리하기 이번 과제에는 문자열을 메뉴이름-개수,메뉴이름-개수, … 형식으로 입력받는 부분이 있었다. 이때 입력 형식이 다르거나, 판매하지 않는 메뉴이거나, 개수가 적절하지 않으면 예외를 던지고 다시 입력받아야 했다. 3주차처럼 이 요구사항 전체를 실행하는 메서드 requestMenu()를 만들면 테스트하기 어려울 것이다. 좀 더 작은 단위로 쪼개면서 입출력을 확인하기 쉽도록 바꿔야 한다. 먼저 stdin에서 입력을 받는 부분, 그리고 성공적인 입력을 받을 때까지 반복하는 부분은 테스트하기 어렵다. 이 두 부분을 메서드로 분리하고, 뷰에 위임하였다. public class InputView { // 컨트롤러에서 호출할 함수 public EntireOrder requestOrders() { System.out.println( /* 안내 메시지 출력 */ ); return tryUnitilSuccessOrder(); } private EntireOrder tryUntilSuccessOrder() { try { // 도메인에게 입력받은 문자열을 전달한다. // 도메인에서 유효성 처리를 하고, 적절하지 않으면 에러를 던질 것이다. return MenuReader.readOrders(Console.readLine()); } catch (IllegalArgumentException e) { System.out.println( /* 에러 메시지 출력 */ ); } // 에러가 던져졌으면 다시 한번 실행한다. return tryUntilSuccessOrder(); } } 이 메서드에 대한 테스트는 작성하지 않을 것이다. 내부 로직은 포함하지 않도록 하고, 최소한의 일만 하도록 분리한다. 뷰 부분에 대한 테스트를 굳이 하지 않아도, 유효성을 검증하는 MenuReader.readOrders()가 반복적으로 잘 작동하는지 확인하면 된다. readOrders() 메서드도 작은 단위로 쪼개서 테스트하기 쉽게 만든다. // 입력 문자열: 메뉴이름1-개수1,메뉴이름2-개수2, ... public static EntireOrder readOrders(String line) { // 1. 정규식으로 형식 검증 validatePattern(line); // 2. , 문자 기준으로 split List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); // 6. 중복 메뉴 검증 validateOrdersDistinct(orders); // 7. 전체 주문 개수 검증 (주문이 20개를 넘으면 무효) validateOrdersSize(orders); // 8. Drink 주문만 있으면 무효 validateOrdersWithNonDrink(orders); return new EntireOrder(orders); } // 입력 문자열: 메뉴이름-개수 public static Order readSingleOrder(String line) { String[] tokens = line.split(MENU_SEPARATOR); // 3. - 문자 기준으로 split validateTokenSize(tokens); // 4. 메뉴 이름 검증 Menu menu = readMenuName(tokens[0]); // 5. 개수 검증 Integer count = readCount(tokens[1]); return new Order(menu, count); } 이렇게 개별 기능을 처리하는 메서드를 따로 만들어주고, readOrders() 메서드는 개별 메서드를 실행해주도록 만들었다. 3주차 코드의 경우 모든 검증을 생성자에서 진행했지만, 4주차 코드에서는 validate 메서드를 모두 분리하여 실행을 마친 후 정상적인 입력값만 생성자로 넘겨주도록 변경하였다. 예를 들어 스테이크-1,케이크-2,콜라-3이라는 전체 입력(EntireOrder)을 받아, 각 주문(Order, 스테이크-1)을 파싱하고, 메뉴 이름(Menu, 스테이크)을 파싱하는 부분(4. 메뉴 이름 검증)을 테스트하려고 한다. 이런 식으로 클래스를 구성하고, 주어진 문자열과 일치하는 메뉴가 존재하면 해당하는 Enum을 반환하는 메서드를 만들었다. public static Menu readMenuName(String name) { return Stream.of(Maindish.values(), Dessert.values(), Drink.values()) .flatMap(Stream::of) .filter(i -&gt; i.getName().equals(name)) .findFirst() .orElseThrow(() -&gt; new IllegalArgumentException(MENU_EXCEPTION)); } 이제 이 메서드를 테스트하기는 쉽다. 메뉴이름-숫자 부분에서 자른 메뉴이름 String을 입력으로 넣고, 예상하는 객체가 반환되는지 혹은 적절히 예외를 던지는지 확인하면 된다. readOrders() 메서드의 다른 부분도 같은 방식으로 단위 기능을 만들고, 테스트를 작성하면 된다. 테스트 코드의 중복 제거 테스트 코드도 코드이고, 리팩토링을 통해 개선해야 한다. 특히 반복해서 실행하는 부분의 중복을 제거하라. 3주차 공통 피드백 피드백에서는 중복을 제거하는 방법 중 하나로 ParameterizedTest를 소개했고, 4주차 과제를 진행하면서 이것의 강력함을 맛볼 수 있었다. 3주차 테스트 코드 일부를 소개한다. @DisplayName("중복 번호 확인") @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); } 로또 번호로 사용할 숫자를 6개 입력받는데, 중복 번호를 전달했을 경우 예외를 잘 던지는지 확인하는 테스트이다. 이 코드에서 다른 번호를 테스트하고 싶다면, 똑같은 코드를 중복해서 넣어야 한다. @DisplayName("중복 번호 확인") @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); List&lt;Integer&gt; numbers2 = List.of(6, 7, 10, 10, 10, 10); // numbers3, numbers4, ... assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers2)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); // assert number3, number4, ... } Junit의 PamareterizedTest를 활용하면 코드 중복을 크게 줄일 수 있다. @DisplayName("입력 형식이 다른 주문") @ValueSource(strings = {"양송이수프-1-2", "초코케이크 1", "-1", "5-바비큐립", "제로콜라--10", "제로콜라-", "타파스-1,,,"}) @ParameterizedTest void illegalFormatOrder(String input) { assertThatThrownBy(() -&gt; MenuReader.readSingleOrder(input)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(MENU_EXCEPTION); } 특히 위에서 정규식을 활용해 입력 형식을 검증하는 부분이 있었는데, 정규식을 정확히 작성했는지 검증하기 위해서 많은 입력값을 테스트해봐야 한다. 여기서 중복 코드를 삽입하는 대신, 입력 문자열을 ValueSource로 제공하면 JUnit이 각 파라미터를 자동으로 입력하여 테스트를 실행해준다. MethodSource를 활용하면 출력값 역시 확인할 수 있다. 아래는 readMenuName() 메서드가 맞는 클래스를 반환했는지 확인하는 테스트이다. private static Stream&lt;Arguments&gt; menuSubclassProvider() { return Stream.of( Arguments.of("양송이수프", Appetizer.class, "양송이수프"), Arguments.of("바비큐립", Maindish.class, "바비큐립"), Arguments.of("초코케이크", Dessert.class, "초코케이크"), Arguments.of("샴페인", Drink.class, "샴페인") ); } @DisplayName("정상 메뉴") @MethodSource("menuSubclassProvider") @ParameterizedTest void normalMenu(String input, Class&lt;? extends Menu&gt; expectedClass, String expectedName) { Menu menu = MenuReader.readMenuName(input); assertThat(expectedClass).isEqualTo(menu.getClass()); assertThat(expectedName).isEqualTo(menu.getName()); } 마치며 이렇게 4주차에는 잘 분리된 단위 테스트를 만들면서 과제를 진행했는데, 덕분에 생각지도 못했던 버그를 잡거나 편하게 리팩토링할 수 있었다.]]></summary></entry><entry><title type="html">상속과 조합 클래스</title><link href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/1-woowacourse-pre3-composition.html" rel="alternate" type="text/html" title="상속과 조합 클래스" /><published>2023-11-08T00:00:00+00:00</published><updated>2023-11-08T00:00:00+00:00</updated><id>https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/1-woowacourse-pre3-composition</id><content type="html" xml:base="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/1-woowacourse-pre3-composition.html"><![CDATA[<h2 id="상속을-사용한-초기-디자인">상속을 사용한 초기 디자인</h2>
+<p>이번 과제의 요구사항 중 <strong>로또 번호 5개와 보너스 번호가 일치</strong>하는지 확인하는
+부분이 있었다.
+이미 로또 번호 6개를 담는 클래스를 정의해둔 상황이었기 때문에,
+로또 클래스를 확장하는(상속하는) 새로운 클래스를 정의하여 문제를 해결하려고 하였다.
+상속으로 구현하여 Dto에서 새로운 클래스를 그대로 활용하려고 하였다.
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG4lJS1cbmNsYXNzIExvdHRvIHtcbnByaXZhdGUgTGlzdH5JbnRlZ2VyfiBudW1iZXJzXG5wdWJsaWMg64-Z7J287ZWcX-uyiO2YuOydmF_qsJzsiJhf67CY7ZmYKExvdHRvIGFub3RoZXIpXG5wdWJsaWMg7Iir7J6Q66W8X-2PrO2VqO2VmOuKlOyngF_tmZXsnbgoSW50ZWdlciBudW1iZXIpXG5wdWJsaWMgTG90dG8oTGlzdH5JbnRlZ2Vyfikg7IOd7ISx7J6QXG59XG4lJS1cbmNsYXNzIExvdHRvV2l0aEJvbnVzIHtcbnByaXZhdGUgSW50ZWdlciBib251c1xucHVibGljIOuztOuEiOyKpOuyiO2YuF_snbzsuZjtlZjripTsp4Bf7ZmV7J24KEludGVnZXIgbnVtYmVyKVxucHVibGljIExvdHRvV2l0aEJvbnVzKExpc3R-SW50ZWdlcn4sIEludGVnZXIpIOyDneyEseyekFxufVxuJSUtXG5Mb3R0byA8fC0tIExvdHRvV2l0aEJvbnVzIDogZXh0ZW5kcyIsIm1lcm1haWQiOm51bGx9" /></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 상속관계이면 LottoWithBonus도 이 Dto 메서드를 사용할 수 있다.</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">LottoDto</span> <span class="nf">from</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">)</span> <span class="o">{...}</span>
+
+<span class="kd">public</span> <span class="nf">LottoWithBonus</span><span class="o">(</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">lotto</span><span class="o">,</span> <span class="nc">Integer</span> <span class="n">bonus</span><span class="o">)</span> <span class="o">{</span>
+	<span class="kd">super</span><span class="o">(</span><span class="n">lotto</span><span class="o">);</span>
+	<span class="k">this</span><span class="o">.</span><span class="na">bonus</span> <span class="o">=</span> <span class="n">bonus</span><span class="o">;</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>문제는 생성자에서 발생했다. Lotto의 numbers 필드는 private 선언되었기 때문에,
+하위 클래스인 LottoWithBonus에서 접근할 수 없다.
+필드를 protected로 바꾸거나 setter를 정의하여 해결할 수도 있지만,
+<a href="/우테코/2023/11/07/2-woowacourse-pre3-dto">이전 글</a>에서 밝혔듯
+캡슐화를 최대한 진행하며 과제를 진행하고 있었다.</p>
+
+<p>LottoWithBonus 객체를 만들기 위해 캡슐화를 포기한다면 요구사항 변화에 대응하기 어려울
+것은 확실했다 [<a href="https://tecoble.techcourse.co.kr/post/2020-05-18-inheritance-vs-composition/">1</a>]. Lotto 클래스와 LottoWithBonus 클래스 간에 강한 의존성이 생기게 되고,
+부모 클래스의 내부 구조가 변하면 하위 클래스의 구현 역시 함께 변경되어야 한다.</p>
+
+<h2 id="조합을-사용한-디자인">조합을 사용한 디자인</h2>
+<p>결국 코드의 재사용을 일부 포기하고 조합으로 디자인을 변경하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">LottoWithBonus</span> <span class="o">{</span>
+	<span class="c1">// 상속하는 대신 Lotto 클래스를 인스턴스 변수로 가진다.</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">;</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">Integer</span> <span class="n">bonus</span><span class="o">;</span>
+	<span class="kd">public</span> <span class="nc">Long</span> <span class="nf">countSameNumbers</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">another</span><span class="o">)</span> <span class="o">{</span>
+		<span class="c1">// Lotto 클래스의 데이터에는 제공하는 메서드를 통해 접근한다.</span>
+		<span class="k">return</span> <span class="n">another</span><span class="o">.</span><span class="na">conutSameNumbers</span><span class="o">(</span><span class="k">this</span><span class="o">.</span><span class="na">lotto</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">class</span> <span class="nc">LottoResult</span> <span class="o">{</span>
+	<span class="c1">// Lotto와 LottoWithBonus를 비교하기 위한 새로운 클래스 작성</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>코드의 양은 증가했지만, 요구사항 변화에 더 유연하게 설계할 수 있었다.
+LottoWithBonus 클래스는 Lotto 클래스의 정보에 메서드를 통해서만 접근하기 때문에,
+Lotto의 내부 구현이 int[]나 String으로 바뀌어도 문제가 없을 것이다.</p>
+
+<h2 id="쉽게-비교하기">쉽게 비교하기</h2>
+<p>다른 글[<a href="https://tecoble.techcourse.co.kr/post/2020-05-18-inheritance-vs-composition/">1</a>], [<a href="https://velog.io/@vino661/%EC%83%81%EC%86%8D%EA%B3%BC-%EC%BB%B4%ED%8F%AC%EC%A7%80%EC%85%98%EC%97%90-%EB%8C%80%ED%95%B4%EC%84%9C#%EC%83%81%EC%86%8Dinheritance%EA%B3%BC-%EC%BB%B4%ED%8F%AC%EC%A7%80%EC%85%98composition">2</a>]에서 상속과 조합을 사용할 곳을 쉽게 판단하는 방법을 찾을 수 있었다.</p>
+<ul>
+  <li><strong>is a</strong> 관계인 경우 상속</li>
+  <li><strong>is part of</strong> 관계인 경우 조합</li>
+</ul>
+
+<p>예를 들어 자바 라이브러리에서 제공하는 <strong>ArrayList</strong>은 <strong>List</strong>의 일종이다(ArrayList <em>is a</em> List).</p>
+
+<p>이번 과제에서도 비슷하게 <em>LottoWithBonus is a Bonus</em> 관계라고 보일 수 있지만,
+사실 정답 로또 + 보너스 번호를 표현할 때 Lotto 클래스를 재사용하고 싶어 나온 결과물이지,
+보너스 번호 자체는 로또 객체와 크게 관련이 없다. 로또 용지가 정답의 일부분(<em>Lotto is part of LottoWithBonus</em>)
+라고 표현하면 정확할 것 같다.</p>
+
+<p>차라리 홀수만 표기된 로또 용지 <em>OddLotto</em> 클래스를 만든다면 <em>OddLotto is a Lotto</em>라고 표현할 수는 있겠다.</p>
+
+<h2 id="references">References</h2>
+<p>[1] <a href="https://tecoble.techcourse.co.kr/post/2020-05-18-inheritance-vs-composition/">상속보다는 조합(Composition)을 사용하자</a></p>
+
+<p>[2] <a href="https://velog.io/@vino661/%EC%83%81%EC%86%8D%EA%B3%BC-%EC%BB%B4%ED%8F%AC%EC%A7%80%EC%85%98%EC%97%90-%EB%8C%80%ED%95%B4%EC%84%9C#%EC%83%81%EC%86%8Dinheritance%EA%B3%BC-%EC%BB%B4%ED%8F%AC%EC%A7%80%EC%85%98composition">상속(inheritance)과 컴포지션(composition)에 대해서</a></p>]]></content><author><name>Metishonora</name></author><category term="우테코" /><category term="우테코프리코스" /><category term="MVC" /><category term="클린코드" /><summary type="html"><![CDATA[상속을 사용한 초기 디자인 이번 과제의 요구사항 중 로또 번호 5개와 보너스 번호가 일치하는지 확인하는 부분이 있었다. 이미 로또 번호 6개를 담는 클래스를 정의해둔 상황이었기 때문에, 로또 클래스를 확장하는(상속하는) 새로운 클래스를 정의하여 문제를 해결하려고 하였다. 상속으로 구현하여 Dto에서 새로운 클래스를 그대로 활용하려고 하였다. // 상속관계이면 LottoWithBonus도 이 Dto 메서드를 사용할 수 있다. public static LottoDto from(Lotto lotto) {...} public LottoWithBonus(List&lt;Integer&gt; lotto, Integer bonus) { super(lotto); this.bonus = bonus; } 문제는 생성자에서 발생했다. Lotto의 numbers 필드는 private 선언되었기 때문에, 하위 클래스인 LottoWithBonus에서 접근할 수 없다. 필드를 protected로 바꾸거나 setter를 정의하여 해결할 수도 있지만, 이전 글에서 밝혔듯 캡슐화를 최대한 진행하며 과제를 진행하고 있었다. LottoWithBonus 객체를 만들기 위해 캡슐화를 포기한다면 요구사항 변화에 대응하기 어려울 것은 확실했다 [1]. Lotto 클래스와 LottoWithBonus 클래스 간에 강한 의존성이 생기게 되고, 부모 클래스의 내부 구조가 변하면 하위 클래스의 구현 역시 함께 변경되어야 한다. 조합을 사용한 디자인 결국 코드의 재사용을 일부 포기하고 조합으로 디자인을 변경하였다. class LottoWithBonus { // 상속하는 대신 Lotto 클래스를 인스턴스 변수로 가진다. private final Lotto lotto; private final Integer bonus; public Long countSameNumbers(Lotto another) { // Lotto 클래스의 데이터에는 제공하는 메서드를 통해 접근한다. return another.conutSameNumbers(this.lotto); } } class LottoResult { // Lotto와 LottoWithBonus를 비교하기 위한 새로운 클래스 작성 } 코드의 양은 증가했지만, 요구사항 변화에 더 유연하게 설계할 수 있었다. LottoWithBonus 클래스는 Lotto 클래스의 정보에 메서드를 통해서만 접근하기 때문에, Lotto의 내부 구현이 int[]나 String으로 바뀌어도 문제가 없을 것이다. 쉽게 비교하기 다른 글[1], [2]에서 상속과 조합을 사용할 곳을 쉽게 판단하는 방법을 찾을 수 있었다. is a 관계인 경우 상속 is part of 관계인 경우 조합 예를 들어 자바 라이브러리에서 제공하는 ArrayList은 List의 일종이다(ArrayList is a List). 이번 과제에서도 비슷하게 LottoWithBonus is a Bonus 관계라고 보일 수 있지만, 사실 정답 로또 + 보너스 번호를 표현할 때 Lotto 클래스를 재사용하고 싶어 나온 결과물이지, 보너스 번호 자체는 로또 객체와 크게 관련이 없다. 로또 용지가 정답의 일부분(Lotto is part of LottoWithBonus) 라고 표현하면 정확할 것 같다. 차라리 홀수만 표기된 로또 용지 OddLotto 클래스를 만든다면 OddLotto is a Lotto라고 표현할 수는 있겠다. References [1] 상속보다는 조합(Composition)을 사용하자 [2] 상속(inheritance)과 컴포지션(composition)에 대해서]]></summary></entry><entry><title type="html">생성자를 숨기는 팩토리 메서드</title><link href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/2-woowacourse-pre3-factory.html" rel="alternate" type="text/html" title="생성자를 숨기는 팩토리 메서드" /><published>2023-11-08T00:00:00+00:00</published><updated>2023-11-08T00:00:00+00:00</updated><id>https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/2-woowacourse-pre3-factory</id><content type="html" xml:base="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/2-woowacourse-pre3-factory.html"><![CDATA[<h2 id="프리코스-1주차-돌아보기">프리코스 1주차 돌아보기</h2>
+<p>1주차에 진행했던 숫자 야구 게임의 코드를 돌아보면, 객체 생성 시에 여러 생성자를 사용했었다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 컴퓨터(투수)가 생성한 랜덤 숫자를 담거나,</span>
+<span class="c1">// 사용자(타자)가 생성한 숫자를 담기 위한 클래스</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Player</span> <span class="o">{</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">;</span>
+
+	<span class="c1">// 무작위 숫자로 객체 생성</span>
+	<span class="kd">public</span> <span class="nf">Player</span><span class="o">(</span><span class="n">총</span> <span class="n">자릿수</span><span class="o">,</span> <span class="n">범위</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+
+	<span class="c1">// 주어진 리스트와 동일하게 객체 생성</span>
+	<span class="kd">public</span> <span class="nf">Player</span><span class="o">(</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">)</span> <span class="o">{</span> <span class="o">...</span> <span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// 사용 예시</span>
+<span class="nc">Player</span> <span class="n">pitcher</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Player</span><span class="o">(</span><span class="n">자릿수</span> <span class="o">=</span> <span class="mi">3</span><span class="o">,</span> <span class="n">범위</span> <span class="o">=</span> <span class="mi">0</span><span class="o">~</span><span class="mi">9</span><span class="o">);</span>  <span class="c1">// 무작위 숫자 [3, 2, 7]  생성</span>
+<span class="nc">Player</span> <span class="n">hitter</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">Player</span><span class="o">(</span><span class="n">사용자</span> <span class="n">입력으로부터</span> <span class="n">구성한</span> <span class="nc">List</span><span class="o">);</span>  <span class="c1">// 사용자가 [1, 2, 3] 입력</span>
+<span class="c1">// 결과: 1스트라이크, 1볼</span>
+</code></pre></div></div>
+<p>투수와 타자의 코드를 재사용하고 싶어 Player라는 하나의 클래스로 만들었고,
+생성자를 통해 생성 방식을 구분하였다.</p>
+
+<p>하지만 코드를 보면 알 수 있듯이 한 눈에 각자의 역할을 파악하기란 쉽지 않다.
+모두 동일한 <em>Player</em>라는 이름의 메서드를 사용하고 있어 코드를 작성한 본인 외에는
+역할을 알기 힘들었고,
+그 점을 보완하기 위해 주석을 덕지덕지 달아야 했다.</p>
+
+<p>이런 문제점을 어떻게 보완할 수 있을까 고민하던 중에, 우테코 프리코스 디코에서 한 가지
+정보를 얻을 수 있었다.</p>
+
+<h2 id="팩토리-메서드">팩토리 메서드</h2>
+<p>팩토리 메서드(Factory Method)란 생성자를 대신해 객체 생성의 역할을 하는
+메서드이다[<a href="https://tecoble.techcourse.co.kr/post/2020-05-26-static-factory-method/">1</a>]. Effective Java[2]에 따르면 생성자 대신 팩토리 메서드를 사용할 때의 장점이
+여럿 있다고 하는데, 그 중 이번 과제에 적용할 수 있던 부분을 소개한다.</p>
+
+<h3 id="이름-가지기">이름 가지기</h3>
+<p>이번 3주차에서는 컴퓨터가 생성한 무작위 로또와 사용자가 생성한 정답 로또 용지를
+Lotto라는 하나의 클래스로 재사용하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">Lotto</span> <span class="o">{</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">;</span>
+	<span class="kd">public</span> <span class="nf">Lotto</span><span class="o">(</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">)</span> <span class="o">{</span>
+		<span class="k">this</span><span class="o">.</span><span class="na">numbers</span> <span class="o">=</span> <span class="n">numbers</span><span class="o">;</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">LottoGenerator</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="kd">static</span> <span class="nc">Lotto</span> <span class="nf">generateRandomLotto</span><span class="o">()</span> <span class="o">{...}</span>
+	<span class="kd">public</span> <span class="kd">static</span> <span class="nc">Lotto</span> <span class="nf">generateAnswerLotto</span><span class="o">(</span><span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">)</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="k">new</span> <span class="nf">Lotto</span><span class="o">(</span><span class="n">numbers</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// 사용 예시</span>
+<span class="nc">Lotto</span> <span class="n">randomLotto</span> <span class="o">=</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateRandomLotto</span><span class="o">();</span>
+<span class="nc">Lotto</span> <span class="n">lottoFromUserInput</span> <span class="o">=</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateAnswerLotto</span><span class="o">(</span><span class="cm">/*리스트*/</span><span class="o">);</span>
+</code></pre></div></div>
+<p>1주차 코드와 비교하면 큰 발전이 느껴진다. 한눈에 무슨 역할을 하는 코드인지 알아보기 쉽고,
+이후 유지보수하기에도 수월할 것이다.</p>
+
+<h3 id="객체-생성-캡슐화">객체 생성 캡슐화</h3>
+<p><a href="/우테코/2023/11/07/2-woowacourse-pre3-dto">이전 글</a>에서 밝힌 것처럼, 이번 과제에는
+Dto도 사용되었다. Dto 객체 생성에도 팩토리 메서드를 사용하는 것으로 이번 주차에 특히
+집중했던 <strong>캡슐화</strong>라는 목표에 다가설 수 있었다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">LottoDto</span> <span class="o">{</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">String</span> <span class="n">numbers</span><span class="o">;</span>
+
+	<span class="c1">// 생성자는 private으로 두고 외부에서 접근하지 못하게 하였다.</span>
+	<span class="kd">private</span> <span class="nf">LottoDto</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">)</span> <span class="o">{...}</span>
+
+	<span class="c1">// 외부에서는 팩토리 메서드를 사용해 Dto를 생성할 수 있다.</span>
+	<span class="kd">public</span> <span class="kd">static</span> <span class="nc">LottoDto</span> <span class="nf">from</span><span class="o">(</span><span class="nc">Lotto</span> <span class="n">lotto</span><span class="o">)</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="k">new</span> <span class="nf">LottoDto</span><span class="o">(</span><span class="n">lotto</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// 팩토리 메서드를 사용하기 이전 코드</span>
+<span class="n">outputView</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="k">new</span> <span class="nc">LottoDto</span><span class="o">(</span><span class="n">lotto</span><span class="o">.</span><span class="na">toString</span><span class="o">()));</span>
+<span class="n">outputView</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="k">new</span> <span class="nc">LottoDto</span><span class="o">(</span><span class="n">lotto</span><span class="o">.</span><span class="na">getNumbers</span><span class="o">()));</span>
+<span class="c1">// 팩토리 메서드를 적용한 코드</span>
+<span class="n">outputView</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="k">new</span> <span class="nc">LottoDto</span><span class="o">.</span><span class="na">from</span><span class="o">(</span><span class="n">lotto</span><span class="o">));</span>
+</code></pre></div></div>
+<p>팩토리 메서드를 사용하기 이전에는, 뷰에 넘겨주기 위한 Dto를 만들 때 getter를 사용해
+모델의 내부 구조를 그대로 노출해야 했다. 지금까지의 글에서 계속 언급했듯이, 이는 캡슐화를
+깨는 디자인이며 요구사항(모델의 내부 구조)이 변할 경우 많은 코드의 수정을 필요로 한다.</p>
+
+<p>아래처럼 팩토리 메서드를 사용하여 변환 과정을 숨기는 것으로 캡슐화를 유지할 수 있다.</p>
+
+<h3 id="코드-재사용">코드 재사용</h3>
+<p>이렇게 [2]에서 소개하는 장점을 과제에 적용하고,
+추가로 객체 생성 시 validate 책임도 팩토리 메서드에 위임했다.
+이 방법을 통해 <a href="/우테코/2023/11/08/1-woowacourse-pre3-composition">조합 클래스</a> 객체
+생성 시, validate 코드를 재사용할 수 있었다.</p>
+<ul>
+  <li>팩토리 메서드 적용 이전
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5jbGFzcyBMb3R0byB7XG5Mb3R0bygpXG52YWxpZGF0ZSgpXG59XG5jbGFzcyBMb3R0b0dlbmVyYXRvciB7XG5nZW5lcmF0ZUxvdHRvKClcbn1cbmNsYXNzIExvdHRvV2l0aEJvbnVzIHtcbkxvdHRvV2l0aEJvbnVzKClcbnZhbGlkYXRlKClcbn1cbkxvdHRvIDwuLiBMb3R0b0dlbmVyYXRvciA6IOyDneyEsSIsIm1lcm1haWQiOm51bGx9" /></li>
+  <li>팩토리 메서드 적용 이후
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5jbGFzcyBMb3R0byB7XG5Mb3R0bygpXG59XG5jbGFzcyBMb3R0b1dpdGhCb251cyB7XG5Mb3R0b1dpdGhCb251cygpXG59XG5jbGFzcyBMb3R0b0dlbmVyYXRvciB7XG5nZW5lcmF0ZUxvdHRvKClcbnZhbGlkYXRlKClcbn1cbkxvdHRvIDwuLiBMb3R0b0dlbmVyYXRvciA6IOyDneyEsVxuTG90dG9XaXRoQm9udXMgPC4uIExvdHRvR2VuZXJhdG9yIDog7IOd7ISxIiwibWVybWFpZCI6bnVsbH0" /></li>
+</ul>
+
+<h2 id="3주차를-마치며">3주차를 마치며</h2>
+<p>이번 주차의 과제를 해결하면서 요구 사항을 만족하기 위해 정말 많은 것을 공부할 수 있었다.
+<strong>MVC 패턴, DTO, 조합 클래스, 팩토리 메서드</strong>를 공부해 코드에 적용하고, 블로그에 적용한
+내용들을 소개했다.</p>
+
+<p>1주차 코드와 약간 비교해봐도 클린 코드를 향해 나아가고 있다는 느낌이 든다. 언젠가 거대한
+프로젝트의 코드에 기여할 때, 이렇게 배운 내용들이 좋은 코드 작성에 도움이 될 것이다.</p>
+
+<h2 id="reference">Reference</h2>
+<p>[1] <a href="https://tecoble.techcourse.co.kr/post/2020-05-26-static-factory-method/">정적 팩토리 메서드(Static Factory Method)는 왜 사용할까?</a></p>
+
+<p>[2] Joshua Bloch, “Effective Java,” 2018.</p>
+
+<p>[3] <a href="https://inpa.tistory.com/entry/GOF-%F0%9F%92%A0-%ED%8C%A9%ED%86%A0%EB%A6%AC-%EB%A9%94%EC%84%9C%EB%93%9CFactory-Method-%ED%8C%A8%ED%84%B4-%EC%A0%9C%EB%8C%80%EB%A1%9C-%EB%B0%B0%EC%9B%8C%EB%B3%B4%EC%9E%90">팩토리 메서드(Factory Method) 패턴 - 완벽 마스터하기</a></p>]]></content><author><name>Metishonora</name></author><category term="우테코" /><category term="우테코프리코스" /><category term="팩토리패턴" /><summary type="html"><![CDATA[프리코스 1주차 돌아보기 1주차에 진행했던 숫자 야구 게임의 코드를 돌아보면, 객체 생성 시에 여러 생성자를 사용했었다. // 컴퓨터(투수)가 생성한 랜덤 숫자를 담거나, // 사용자(타자)가 생성한 숫자를 담기 위한 클래스 public class Player { private final List&lt;Integer&gt; numbers; // 무작위 숫자로 객체 생성 public Player(총 자릿수, 범위) { ... } // 주어진 리스트와 동일하게 객체 생성 public Player(List&lt;Integer&gt; numbers) { ... } } // 사용 예시 Player pitcher = new Player(자릿수 = 3, 범위 = 0~9); // 무작위 숫자 [3, 2, 7] 생성 Player hitter = new Player(사용자 입력으로부터 구성한 List); // 사용자가 [1, 2, 3] 입력 // 결과: 1스트라이크, 1볼 투수와 타자의 코드를 재사용하고 싶어 Player라는 하나의 클래스로 만들었고, 생성자를 통해 생성 방식을 구분하였다. 하지만 코드를 보면 알 수 있듯이 한 눈에 각자의 역할을 파악하기란 쉽지 않다. 모두 동일한 Player라는 이름의 메서드를 사용하고 있어 코드를 작성한 본인 외에는 역할을 알기 힘들었고, 그 점을 보완하기 위해 주석을 덕지덕지 달아야 했다. 이런 문제점을 어떻게 보완할 수 있을까 고민하던 중에, 우테코 프리코스 디코에서 한 가지 정보를 얻을 수 있었다. 팩토리 메서드 팩토리 메서드(Factory Method)란 생성자를 대신해 객체 생성의 역할을 하는 메서드이다[1]. Effective Java[2]에 따르면 생성자 대신 팩토리 메서드를 사용할 때의 장점이 여럿 있다고 하는데, 그 중 이번 과제에 적용할 수 있던 부분을 소개한다. 이름 가지기 이번 3주차에서는 컴퓨터가 생성한 무작위 로또와 사용자가 생성한 정답 로또 용지를 Lotto라는 하나의 클래스로 재사용하였다. public class Lotto { private final List&lt;Integer&gt; numbers; public Lotto(List&lt;Integer&gt; numbers) { this.numbers = numbers; } } public class LottoGenerator { public static Lotto generateRandomLotto() {...} public static Lotto generateAnswerLotto(List&lt;Integer&gt; numbers) { return new Lotto(numbers); } } // 사용 예시 Lotto randomLotto = LottoGenerator.generateRandomLotto(); Lotto lottoFromUserInput = LottoGenerator.generateAnswerLotto(/*리스트*/); 1주차 코드와 비교하면 큰 발전이 느껴진다. 한눈에 무슨 역할을 하는 코드인지 알아보기 쉽고, 이후 유지보수하기에도 수월할 것이다. 객체 생성 캡슐화 이전 글에서 밝힌 것처럼, 이번 과제에는 Dto도 사용되었다. Dto 객체 생성에도 팩토리 메서드를 사용하는 것으로 이번 주차에 특히 집중했던 캡슐화라는 목표에 다가설 수 있었다. public class LottoDto { private final String numbers; // 생성자는 private으로 두고 외부에서 접근하지 못하게 하였다. private LottoDto(Lotto lotto) {...} // 외부에서는 팩토리 메서드를 사용해 Dto를 생성할 수 있다. public static LottoDto from(Lotto lotto) { return new LottoDto(lotto); } } // 팩토리 메서드를 사용하기 이전 코드 outputView.print(new LottoDto(lotto.toString())); outputView.print(new LottoDto(lotto.getNumbers())); // 팩토리 메서드를 적용한 코드 outputView.print(new LottoDto.from(lotto)); 팩토리 메서드를 사용하기 이전에는, 뷰에 넘겨주기 위한 Dto를 만들 때 getter를 사용해 모델의 내부 구조를 그대로 노출해야 했다. 지금까지의 글에서 계속 언급했듯이, 이는 캡슐화를 깨는 디자인이며 요구사항(모델의 내부 구조)이 변할 경우 많은 코드의 수정을 필요로 한다. 아래처럼 팩토리 메서드를 사용하여 변환 과정을 숨기는 것으로 캡슐화를 유지할 수 있다. 코드 재사용 이렇게 [2]에서 소개하는 장점을 과제에 적용하고, 추가로 객체 생성 시 validate 책임도 팩토리 메서드에 위임했다. 이 방법을 통해 조합 클래스 객체 생성 시, validate 코드를 재사용할 수 있었다. 팩토리 메서드 적용 이전 팩토리 메서드 적용 이후 3주차를 마치며 이번 주차의 과제를 해결하면서 요구 사항을 만족하기 위해 정말 많은 것을 공부할 수 있었다. MVC 패턴, DTO, 조합 클래스, 팩토리 메서드를 공부해 코드에 적용하고, 블로그에 적용한 내용들을 소개했다. 1주차 코드와 약간 비교해봐도 클린 코드를 향해 나아가고 있다는 느낌이 든다. 언젠가 거대한 프로젝트의 코드에 기여할 때, 이렇게 배운 내용들이 좋은 코드 작성에 도움이 될 것이다. Reference [1] 정적 팩토리 메서드(Static Factory Method)는 왜 사용할까? [2] Joshua Bloch, “Effective Java,” 2018. [3] 팩토리 메서드(Factory Method) 패턴 - 완벽 마스터하기]]></summary></entry><entry><title type="html">MVC 패턴으로 작성하기</title><link href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html" rel="alternate" type="text/html" title="MVC 패턴으로 작성하기" /><published>2023-11-07T00:00:00+00:00</published><updated>2023-11-07T00:00:00+00:00</updated><id>https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc</id><content type="html" xml:base="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html"><![CDATA[<h2 id="mvc-패턴">MVC 패턴</h2>
+<p>본질적인 질문이지만, MVC 패턴을 왜 사용할까?</p>
+
+<p>짧은 견해로는 뷰와 모델 부분을 완전히 분리하는 것으로 결합도를 낮추고,
+요구사항이 변경되더라도 코드를 재사용할 수 있도록 하기 위하는 것이라 생각한다 [<a href="https://developer.apple.com/library/archive/documentation/General/Conceptual/CocoaEncyclopedia/Model-View-Controller/Model-View-Controller.html#//apple_ref/doc/uid/TP40010810-CH14">1</a>], [<a href="https://mccoy-devloper.tistory.com/120">2</a>].</p>
+
+<p>아래 사진은 Apple에서 발표한 Cocoa MVC 패턴[<a href="https://developer.apple.com/library/archive/documentation/General/Conceptual/CocoaEncyclopedia/Model-View-Controller/Model-View-Controller.html#//apple_ref/doc/uid/TP40010810-CH14">1</a>], [<a href="https://velog.io/@yohanblessyou/MVC%EC%99%80-Cocoa-MVC#-mvc-%EA%B0%9D%EC%B2%B4%EB%93%A4%EC%9D%98-%EC%97%AD%ED%95%A0%EA%B3%BC-%EA%B4%80%EA%B3%84">4</a>]을 표현하는 사진이다.
+이번 글에서는 3주차 우테코 프리코스를 진행하면서 어떻게 MVC 패턴을 적용했는지,
+코드의 재사용성을 높였는지,
+그리고 고민한 부분이 무엇인지 소개하려고 한다.</p>
+
+<p>참고로 3주차 과제의 요구사항은 <a href="https://github.com/metishonora/java-lotto-6/tree/metishonora">여기</a>에서 확인할 수 있다.</p>
+
+<p><img src="/assets/posts/231107-1.png" alt="mvc-pattern-picture" /></p>
+
+<h3 id="model">Model</h3>
+<ul>
+  <li>데이터 관련 책임을 담당한다.</li>
+  <li>컨트롤러와 뷰에 의존하지 않아야 한다. 즉, 컨트롤러와 뷰의 필드, 메서드를 가져다 쓰지 않는다.</li>
+</ul>
+
+<h3 id="view">View</h3>
+<ul>
+  <li>사용자 인터페이스를 담당한다.</li>
+  <li>컨트롤러에 의존하지 않아야 한다.</li>
+  <li>모델로부터 동적인 데이터만 받는다. (<em>이 부분은 테코톡[<a href="https://www.youtube.com/watch?v=ogaXW6KPc8I">3</a>]의 내용을 재해석한 것입니다.</em>)</li>
+  <li>정적인 데이터는 자체적으로 처리한다.</li>
+</ul>
+
+<h3 id="controller">Controller</h3>
+<ul>
+  <li>모델과 뷰를 연결한다.</li>
+  <li>모델에서 데이터를 받아 뷰에 전달한다.</li>
+</ul>
+
+<h2 id="고민한-부분">고민한 부분</h2>
+
+<h3 id="컨트롤러의-역할">컨트롤러의 역할</h3>
+<p>입력은 컨트롤러 클래스가 받을 것인가, 혹은 뷰 클래스가 받을 것인가?</p>
+<blockquote>
+  <p>뷰와 컨트롤러의 결합이 커지면, 컨트롤러가 하나의 뷰에 종속적일 수밖에 없다. [<a href="https://velog.io/@hdg3052/Controller%EC%9D%98-%EC%97%AD%ED%95%A0">5</a>]</p>
+</blockquote>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// LottoController.java</span>
+<span class="c1">// 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다.</span>
+<span class="kt">int</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+	<span class="o">...</span>
+	<span class="k">return</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="nc">Console</span><span class="o">.</span><span class="na">readLine</span><span class="o">());</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>콘솔(터미널)로부터 한 줄을 받고 정수로 변환하는, 현재 요구사항을 만족하는 구현이다.
+하지만 갑작스럽게 요구사항이 바뀌어, HTTP POST로 입력을 받아야 한다면 뷰와 더불어 컨트롤러의 코드도 바꿔야 할 것이다.
+즉 컨트롤러가 Console이라는 하나의 뷰에 종속적이라 할 수 있겠다.</p>
+
+<p><img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5Mb3R0b0NvbnRyb2xsZXIgLi4-IElucHV0VmlldyA6IHVzZXNcbmNsYXNzIElucHV0VmlldyB7XG48PGludGVyZmFjZT4-XG59XG5JbnB1dFZpZXcgPHwtLSBIdHRwVmlldyA6IGltcGxlbWVudHNcbklucHV0VmlldyA8fC0tIENvbnNvbGVWaWV3IDogaW1wbGVtZW50cyIsIm1lcm1haWQiOm51bGx9" /></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// LottoController.java</span>
+<span class="kt">int</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+	<span class="o">...</span>
+	<span class="k">return</span> <span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>따라서 컨트롤러에서는 InputView라는 뷰 인터페이스를 사용하게 하였다.
+만약 요구사항이 변할 경우, InputView의 구현체를 ConsoleView에서 다른 클래스로 변경한다면,
+컨트롤러 코드를 변경하지 않고 요구사항을 만족할 수 있을 것이다.</p>
+
+<h3 id="에러-핸들링-책임">에러 핸들링 책임</h3>
+
+<p>이번 과제에는 로또 당첨 번호를 콘솔에서 입력받는 부분이 있다.</p>
+<ul>
+  <li>올바른 예시: 1,2,3,4,5,6</li>
+  <li>오류 예시
+    <ul>
+      <li>0,1,2,3,4,5 		(로또 번호는 1~45의 범위만 존재한다)</li>
+      <li>10,10,10,10,10,10 	(중복된 번호를 가질 수 없다)</li>
+      <li>1,3,5,7,9 		(6개의 번호를 선택해야 한다)</li>
+      <li>hello, world 		(숫자만 입력해야 한다)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>입력이 들어왔을 때 각각의 에러 핸들링을 어디서 처리하는 게 코드 재사용성을 높일 수 있는가?</p>
+
+<p><strong>후보 1: 뷰에 에러 핸들링을 위임하고, 컨트롤러에 전달하기</strong>
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5jbGFzcyBDb250cm9sbGVyIHtcblZpZXftmLjstpwoKVxuTG90dG_qsJ3ssrTsg53shLEoKVxufVxuY2xhc3MgVmlldyB7XG7roZzrmJDrsojtmLhf7J6F66Cl67Cb6riwKClcbi0tIO2VnF_spIRf7J6F66Cl67Cb6riwKClcbi0tIOyIq-yekOyduOyngF_tmZXsnbjtlZjquLAoKVxuLS0gNuqwnOyduOyngF_tmZXsnbjtlZjquLAoKVxuLS0g7KSR67O1X-uyiO2YuF_tmZXsnbjtlZjquLAoKVxufVxuTG90dG8gPHwtLSBDb250cm9sbGVyIDog7IOd7ISxXG5Db250cm9sbGVyIDx8LS0gVmlldyA6IOyZhOyEseuQnCDsoJXsiJgg66as7Iqk7Yq4IOyghOuLrCIsIm1lcm1haWQiOm51bGx9" />
+(View의 메서드 <strong>로또_번호_입력받기()</strong>에서 하위 4개 메서드를 사용하는 것을 표현했다.)</p>
+
+<p>화살표만 보면 뷰가 모델에 의존하지 않은 것 같지만, <strong>암시적으로 의존한다</strong>고 표현하고 싶다.
+왜냐하면 요구 사항이 변하여 로또 개수가 7개 번호로 변한다면 어떻게 될까?
+Lotto 모델만 변경하여 해결해야 할 문제를, 이 구성에서는 뷰의 메서드 수정을 피할 수 없다.
+뷰에서 알아서는 안되는 <strong>로또 길이는 6개</strong>라는 정보를 알고 있기 때문이다.</p>
+
+<p><strong>후보 2: 역할에 따라 에러 핸들링 분배</strong></p>
+
+<p>논리적인 부분은 Model에서 처리, 형식적인 부분은 View에서 처리하도록 하였다.
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5jbGFzcyBMb3R0byB7XG7spJHrs7Vf67KI7Zi4X-2ZleyduCgpXG426rCc7J247KeAX-2ZleyduCgpXG7siKvsnpBf67KU7JyEX-2ZleyduCgpXG59XG5jbGFzcyBDb250cm9sbGVyIHtcbuuwmOuztTpcblZpZXftmLjstpwoKVxuTG90dG_qsJ3ssrTsg53shLEoKVxufVxuY2xhc3MgVmlldyB7XG7soJXsiJhf7J6F66Cl67Cb6riwKClcbi0tIO2VnF_spIRf7J6F66Cl67Cb6riwKClcbi0tIOygleyImOyduOyngF_tmZXsnbgoKVxufVxuTG90dG8gPHwtLSBDb250cm9sbGVyIDog7IOd7ISxXG5Db250cm9sbGVyIDx8LS0gVmlldyA6IOygleyImCDsoITri6wiLCJtZXJtYWlkIjpudWxsfQ" />
+이렇게 설계하는 것으로, 메서드의 이름을 보고 각각의 책임을 명확하게 할 수 있었다.</p>
+<ul>
+  <li>뷰에서는 정수 <em>requestInteger()</em>를 입력받는다. 원하는 입력 형식이 아니라면 오류를 출력한다.</li>
+  <li>각 모델은 컨트롤러가 넘겨준 값을 사용해 객체 <em>new Money()</em>를 생성한다. 논리적으로 잘못된 값이라면 오류를 출력한다.</li>
+  <li>컨트롤러는 뷰의 메서드를 호출하여, 결과값을 모델에게 넘긴다. 오류를 발견했다면 다시 뷰를 호출한다.</li>
+</ul>
+
+<p>또한 뷰에서 제공하는 메서드를, 컨트롤러의 여러 부분에서 비슷한 형식으로 재사용할 수 있었다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// LottoController.java</span>
+
+<span class="c1">// 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다.</span>
+<span class="nc">Money</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+	<span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// 올바른 Money 객체가 만들어질 때까지 반복한다.</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="k">new</span> <span class="nf">Money</span><span class="o">(</span><span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="c1">// 객체를 만드는 중, 어디에서든 illegalArgumentException이 발생했다면</span>
+			<span class="c1">// 적절한 에러 메시지를 출력한다.</span>
+			<span class="n">outputView</span><span class="o">.</span><span class="na">printError</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// 사용자로부터 보너스 당첨 번호를 입력받는다.</span>
+<span class="nc">BonusNumber</span> <span class="nf">requestBonusNumber</span><span class="o">()</span> <span class="o">{</span>
+	<span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// 올바른 BonusNumber 객체가 만들어질 때까지 반복한다.</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="k">new</span> <span class="nf">BonusNumber</span><span class="o">(</span><span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="n">outputView</span><span class="o">.</span><span class="na">printError</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="마치며">마치며</h2>
+<p>1, 2주차 프리코스 과제에서는 MVC 패턴을 적용하지 않고 절차적인 코드로 진행했었다.
+이번 기회에 MVC 패턴을 활용해보면서 코드 재사용성과, 요구사항의 변화에 어떻게 대응할 수 있을지
+깊게 생각해볼 수 있었다.</p>
+
+<p>다음 글에서는 3주차에 공부했던 다른 개념들에 대해서 소개하려고 한다.</p>]]></content><author><name>Metishonora</name></author><category term="우테코" /><category term="우테코프리코스" /><category term="MVC" /><summary type="html"><![CDATA[MVC 패턴 본질적인 질문이지만, MVC 패턴을 왜 사용할까? 짧은 견해로는 뷰와 모델 부분을 완전히 분리하는 것으로 결합도를 낮추고, 요구사항이 변경되더라도 코드를 재사용할 수 있도록 하기 위하는 것이라 생각한다 [1], [2]. 아래 사진은 Apple에서 발표한 Cocoa MVC 패턴[1], [4]을 표현하는 사진이다. 이번 글에서는 3주차 우테코 프리코스를 진행하면서 어떻게 MVC 패턴을 적용했는지, 코드의 재사용성을 높였는지, 그리고 고민한 부분이 무엇인지 소개하려고 한다. 참고로 3주차 과제의 요구사항은 여기에서 확인할 수 있다. Model 데이터 관련 책임을 담당한다. 컨트롤러와 뷰에 의존하지 않아야 한다. 즉, 컨트롤러와 뷰의 필드, 메서드를 가져다 쓰지 않는다. View 사용자 인터페이스를 담당한다. 컨트롤러에 의존하지 않아야 한다. 모델로부터 동적인 데이터만 받는다. (이 부분은 테코톡[3]의 내용을 재해석한 것입니다.) 정적인 데이터는 자체적으로 처리한다. Controller 모델과 뷰를 연결한다. 모델에서 데이터를 받아 뷰에 전달한다. 고민한 부분 컨트롤러의 역할 입력은 컨트롤러 클래스가 받을 것인가, 혹은 뷰 클래스가 받을 것인가? 뷰와 컨트롤러의 결합이 커지면, 컨트롤러가 하나의 뷰에 종속적일 수밖에 없다. [5] // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. int requestMoney() { ... return Integer.parseInt(Console.readLine()); } 콘솔(터미널)로부터 한 줄을 받고 정수로 변환하는, 현재 요구사항을 만족하는 구현이다. 하지만 갑작스럽게 요구사항이 바뀌어, HTTP POST로 입력을 받아야 한다면 뷰와 더불어 컨트롤러의 코드도 바꿔야 할 것이다. 즉 컨트롤러가 Console이라는 하나의 뷰에 종속적이라 할 수 있겠다. // LottoController.java int requestMoney() { ... return inputView.requestInteger(); } 따라서 컨트롤러에서는 InputView라는 뷰 인터페이스를 사용하게 하였다. 만약 요구사항이 변할 경우, InputView의 구현체를 ConsoleView에서 다른 클래스로 변경한다면, 컨트롤러 코드를 변경하지 않고 요구사항을 만족할 수 있을 것이다. 에러 핸들링 책임 이번 과제에는 로또 당첨 번호를 콘솔에서 입력받는 부분이 있다. 올바른 예시: 1,2,3,4,5,6 오류 예시 0,1,2,3,4,5 (로또 번호는 1~45의 범위만 존재한다) 10,10,10,10,10,10 (중복된 번호를 가질 수 없다) 1,3,5,7,9 (6개의 번호를 선택해야 한다) hello, world (숫자만 입력해야 한다) 입력이 들어왔을 때 각각의 에러 핸들링을 어디서 처리하는 게 코드 재사용성을 높일 수 있는가? 후보 1: 뷰에 에러 핸들링을 위임하고, 컨트롤러에 전달하기 (View의 메서드 로또_번호_입력받기()에서 하위 4개 메서드를 사용하는 것을 표현했다.) 화살표만 보면 뷰가 모델에 의존하지 않은 것 같지만, 암시적으로 의존한다고 표현하고 싶다. 왜냐하면 요구 사항이 변하여 로또 개수가 7개 번호로 변한다면 어떻게 될까? Lotto 모델만 변경하여 해결해야 할 문제를, 이 구성에서는 뷰의 메서드 수정을 피할 수 없다. 뷰에서 알아서는 안되는 로또 길이는 6개라는 정보를 알고 있기 때문이다. 후보 2: 역할에 따라 에러 핸들링 분배 논리적인 부분은 Model에서 처리, 형식적인 부분은 View에서 처리하도록 하였다. 이렇게 설계하는 것으로, 메서드의 이름을 보고 각각의 책임을 명확하게 할 수 있었다. 뷰에서는 정수 requestInteger()를 입력받는다. 원하는 입력 형식이 아니라면 오류를 출력한다. 각 모델은 컨트롤러가 넘겨준 값을 사용해 객체 new Money()를 생성한다. 논리적으로 잘못된 값이라면 오류를 출력한다. 컨트롤러는 뷰의 메서드를 호출하여, 결과값을 모델에게 넘긴다. 오류를 발견했다면 다시 뷰를 호출한다. 또한 뷰에서 제공하는 메서드를, 컨트롤러의 여러 부분에서 비슷한 형식으로 재사용할 수 있었다. // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. Money requestMoney() { while (true) { // 올바른 Money 객체가 만들어질 때까지 반복한다. try { return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 객체를 만드는 중, 어디에서든 illegalArgumentException이 발생했다면 // 적절한 에러 메시지를 출력한다. outputView.printError(e.getMessage()); } } } // 사용자로부터 보너스 당첨 번호를 입력받는다. BonusNumber requestBonusNumber() { while (true) { // 올바른 BonusNumber 객체가 만들어질 때까지 반복한다. try { return new BonusNumber(inputView.requestInteger()); } catch (IllegalArgumentException e) { outputView.printError(e.getMessage()); } } } 마치며 1, 2주차 프리코스 과제에서는 MVC 패턴을 적용하지 않고 절차적인 코드로 진행했었다. 이번 기회에 MVC 패턴을 활용해보면서 코드 재사용성과, 요구사항의 변화에 어떻게 대응할 수 있을지 깊게 생각해볼 수 있었다. 다음 글에서는 3주차에 공부했던 다른 개념들에 대해서 소개하려고 한다.]]></summary></entry><entry><title type="html">캡슐화를 돕는 DTO 사용기</title><link href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto.html" rel="alternate" type="text/html" title="캡슐화를 돕는 DTO 사용기" /><published>2023-11-07T00:00:00+00:00</published><updated>2023-11-07T00:00:00+00:00</updated><id>https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto</id><content type="html" xml:base="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto.html"><![CDATA[<h2 id="코드의-의존성-낮추기">코드의 의존성 낮추기</h2>
+<p>재사용이 가능한 코드를 만들기 위해선 코드 간 <strong>의존성</strong>을 낮춰야 한다.
+의존성을 낮추기 위한 방법으로 <a href="/우테코/2023/11/07/1-woowacourse-pre3-mvc">MVC 패턴</a>이 사용된다.</p>
+
+<p>MVC 패턴에서는 모델과 뷰가 서로의 존재를 모른다.
+모델의 내부 구조가 바뀌든, 뷰의 표현 방식이 바뀌든 서로 영향을 주지 않아야 하기 때문이다.</p>
+
+<p>하지만 데이터를 사용자에게 보여주기 위해선 결국 어떤 방식으로든
+도메인이 가진 내용물을 뷰에게 전달해야 한다.</p>
+
+<h2 id="모델을-그대로-뷰에-넘겼을-때">모델을 그대로 뷰에 넘겼을 때</h2>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">User</span> <span class="o">{</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">String</span> <span class="n">name</span><span class="o">;</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">String</span> <span class="n">password</span><span class="o">;</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="kt">int</span> <span class="n">age</span><span class="o">;</span>
+
+	<span class="kd">public</span> <span class="nf">User</span><span class="o">()</span> <span class="o">{...}</span>
+	<span class="kd">public</span> <span class="nc">String</span> <span class="nf">getPassword</span><span class="o">()</span> <span class="o">{...}</span>
+	<span class="kd">public</span> <span class="nf">someOtherLogic</span><span class="o">()</span> <span class="o">{...}</span>
+	<span class="o">...</span>
+<span class="o">}</span>
+
+<span class="c1">// controller.java</span>
+<span class="kt">void</span> <span class="nf">printUser</span><span class="o">()</span> <span class="o">{</span>
+	<span class="nc">User</span> <span class="n">user</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">User</span><span class="o">();</span>
+	<span class="o">...</span>
+	<span class="n">outputView</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="n">user</span><span class="o">);</span>  <span class="c1">// 뷰에 User 객체를 그대로 전달한다.</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>위 코드에서는 뷰에서 <em>password</em>필드에 getter를 통해 접근할 수 있다.
+또한 뷰에서 사용하지 않을 다른 로직 메서드에도 접근할 수 있다.
+캡슐화가 잘 이루어지지 않아, 모델과 뷰 간의 결합(coupling)이 생길 수 있다 [<a href="https://tecoble.techcourse.co.kr/post/2021-04-25-dto-layer-scope">2</a>].
+즉 모델이나 뷰의 요구사항이 변했을 때, 많은 코드를 변경해야 할 수 있을 것이다.</p>
+
+<h2 id="dto의-등장">DTO의 등장</h2>
+<p>이렇게 캡슐화가 깨지는 상황을 방지하기 위해 <strong>DTO(Data Transfer Object)</strong>를 활용할 수 있다 [<a href="https://tecoble.techcourse.co.kr/post/2021-05-16-dto-vs-vo-vs-entity">1</a>].
+DTO는 원래 객체에서 원하는 데이터를 담아 전달할 수 있다 [<a href="https://www.mainfn.dev/DTO,%20DOMAIN%20%EB%B3%80%ED%99%98%20%EC%9C%84%EC%B9%98%20%EB%B0%8F%20%EA%B0%81%20%EB%B0%A9%EB%B2%95%EC%9D%98%20%EC%9E%A5%EB%8B%A8%EC%A0%90%EC%97%90%20%EB%8C%80%ED%95%9C%20%EC%83%9D%EA%B0%81">3</a>].</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">class</span> <span class="nc">UserNameDto</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="kd">final</span> <span class="nc">String</span> <span class="n">name</span><span class="o">;</span>
+	<span class="kd">private</span> <span class="nf">UserNameDto</span><span class="o">(</span><span class="nc">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{...}</span>
+	<span class="kd">public</span> <span class="kd">static</span> <span class="nc">UserNameDto</span> <span class="nf">from</span><span class="o">(</span><span class="nc">User</span> <span class="n">user</span><span class="o">)</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="k">new</span> <span class="nf">UserNameDto</span><span class="o">(</span><span class="n">user</span><span class="o">.</span><span class="na">name</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kt">void</span> <span class="nf">printUser</span><span class="o">()</span> <span class="o">{</span>
+	<span class="o">...</span>
+	<span class="n">outputView</span><span class="o">.</span><span class="na">print</span><span class="o">(</span><span class="nc">UserNameDto</span><span class="o">.</span><span class="na">from</span><span class="o">(</span><span class="n">user</span><span class="o">));</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>위 코드는 User 객체에서 <em>name</em>필드만을 DTO에 담아 뷰에 넘겨주는 모습이다.
+이렇게 넘겨준다면 뷰에서는 더 이상 User 객체 자체에 접근할 수 없고,
+캡슐화가 깨지지 않는 모습을 확인할 수 있다.</p>
+
+<h2 id="과제에-적용한-모습">과제에 적용한 모습</h2>
+<p>이번 과제에 DTO를 적용할 때는:</p>
+<ul>
+  <li>뷰와 모델의 의존도 약화하기</li>
+  <li>모델의 캡슐화</li>
+  <li>코드 재사용성</li>
+</ul>
+
+<p>이 세 가지 사항에 대해서 집중하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// Lotto.java</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Lotto</span> <span class="o">{</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span><span class="o">;</span>
+	<span class="o">...</span>
+<span class="o">}</span>
+
+<span class="c1">// OutputView.java</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">OutputView</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="kt">void</span> <span class="nf">printObject</span><span class="o">(</span><span class="nc">Object</span> <span class="n">arg</span><span class="o">)</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span><span class="n">arg</span><span class="o">);</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>고민했던 점은 private 선언된 <em>numbers</em>필드의 정보를 Dto로 건네주는 방법이다.
+Getter 메서드를 추가하여 Dto에 전달해줄 수 있지만(실제로 처음 Dto를 공부했던 글[<a href="https://tecoble.techcourse.co.kr/post/2021-05-16-dto-vs-vo-vs-entity">1</a>], [<a href="https://tecoble.techcourse.co.kr/post/2021-04-25-dto-layer-scope">2</a>]에서는 이 방법을 권장하는 것 같다),
+OutputView에 만들어둔 코드를 재사용하고 싶어 toString()을 오버라이딩하여 사용하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">ResultDto</span> <span class="o">{</span>
+	<span class="kd">private</span> <span class="kd">final</span> <span class="nc">String</span> <span class="n">stat</span><span class="o">;</span>
+	<span class="o">...</span>
+	<span class="nd">@Override</span>
+	<span class="kd">public</span> <span class="nc">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+		<span class="k">return</span> <span class="n">stat</span><span class="o">;</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">LottoResult</span> <span class="o">{</span>
+	<span class="nd">@Override</span>
+	<span class="kd">public</span> <span class="nc">String</span> <span class="nf">toString</span><span class="o">()</span> <span class="o">{</span>
+		<span class="c1">// 복잡한 String 변환 코드...</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>문제는 이렇게 완성하고 보니, 뷰의 책임은 굉장히 가벼워진 대신 출력을 구성하는 책임이 모델에게 넘어오게 되었다.</p>
+
+<p>DTO를 사용해 정보를 전달할 때,
+도메인 객체의 toString()을 활용하여 String으로 파싱한 후 전달하였다.
+즉 뷰에서 담당해야 하는 역할(출력을 어떻게 구성할지)을 도메인에서 담당하였다.
+뷰 요구사항이 바뀔 경우, 도메인을 변경해야 하는 문제가 있을 것 같다.</p>
+
+<p>뷰와 모델 간 어느 정도의 결합까지 허용해야 좋은 것인지,
+그리고 클래스 책임 분배를 어떻게 해야 하는지는 언제나 어려운 문제인 것 같다.</p>
+
+<p><a href="https://github.com/metishonora/java-lotto-6">프로젝트 전체 코드</a></p>
+
+<h2 id="references">References</h2>
+<p>[1] <a href="https://tecoble.techcourse.co.kr/post/2021-05-16-dto-vs-vo-vs-entity">DTO vs VO vs Entity</a></p>
+
+<p>[2] <a href="https://tecoble.techcourse.co.kr/post/2021-04-25-dto-layer-scope">DTO의 사용 범위에 대하여</a></p>
+
+<p>[3] <a href="https://www.mainfn.dev/DTO,%20DOMAIN%20%EB%B3%80%ED%99%98%20%EC%9C%84%EC%B9%98%20%EB%B0%8F%20%EA%B0%81%20%EB%B0%A9%EB%B2%95%EC%9D%98%20%EC%9E%A5%EB%8B%A8%EC%A0%90%EC%97%90%20%EB%8C%80%ED%95%9C%20%EC%83%9D%EA%B0%81">DTO, Domain의 변환 위치에 대해서</a></p>]]></content><author><name>Metishonora</name></author><category term="우테코" /><category term="우테코프리코스" /><category term="MVC" /><category term="DTO" /><category term="클린아키텍처" /><summary type="html"><![CDATA[코드의 의존성 낮추기 재사용이 가능한 코드를 만들기 위해선 코드 간 의존성을 낮춰야 한다. 의존성을 낮추기 위한 방법으로 MVC 패턴이 사용된다. MVC 패턴에서는 모델과 뷰가 서로의 존재를 모른다. 모델의 내부 구조가 바뀌든, 뷰의 표현 방식이 바뀌든 서로 영향을 주지 않아야 하기 때문이다. 하지만 데이터를 사용자에게 보여주기 위해선 결국 어떤 방식으로든 도메인이 가진 내용물을 뷰에게 전달해야 한다. 모델을 그대로 뷰에 넘겼을 때 class User { private final String name; private final String password; private final int age; public User() {...} public String getPassword() {...} public someOtherLogic() {...} ... } // controller.java void printUser() { User user = new User(); ... outputView.print(user); // 뷰에 User 객체를 그대로 전달한다. } 위 코드에서는 뷰에서 password필드에 getter를 통해 접근할 수 있다. 또한 뷰에서 사용하지 않을 다른 로직 메서드에도 접근할 수 있다. 캡슐화가 잘 이루어지지 않아, 모델과 뷰 간의 결합(coupling)이 생길 수 있다 [2]. 즉 모델이나 뷰의 요구사항이 변했을 때, 많은 코드를 변경해야 할 수 있을 것이다. DTO의 등장 이렇게 캡슐화가 깨지는 상황을 방지하기 위해 DTO(Data Transfer Object)를 활용할 수 있다 [1]. DTO는 원래 객체에서 원하는 데이터를 담아 전달할 수 있다 [3]. class UserNameDto { public final String name; private UserNameDto(String name) {...} public static UserNameDto from(User user) { return new UserNameDto(user.name); } } void printUser() { ... outputView.print(UserNameDto.from(user)); } 위 코드는 User 객체에서 name필드만을 DTO에 담아 뷰에 넘겨주는 모습이다. 이렇게 넘겨준다면 뷰에서는 더 이상 User 객체 자체에 접근할 수 없고, 캡슐화가 깨지지 않는 모습을 확인할 수 있다. 과제에 적용한 모습 이번 과제에 DTO를 적용할 때는: 뷰와 모델의 의존도 약화하기 모델의 캡슐화 코드 재사용성 이 세 가지 사항에 대해서 집중하였다. // Lotto.java public class Lotto { private final List&lt;Integer&gt; numbers; ... } // OutputView.java public class OutputView { public void printObject(Object arg) { System.out.println(arg); } } 고민했던 점은 private 선언된 numbers필드의 정보를 Dto로 건네주는 방법이다. Getter 메서드를 추가하여 Dto에 전달해줄 수 있지만(실제로 처음 Dto를 공부했던 글[1], [2]에서는 이 방법을 권장하는 것 같다), OutputView에 만들어둔 코드를 재사용하고 싶어 toString()을 오버라이딩하여 사용하였다. public class ResultDto { private final String stat; ... @Override public String toString() { return stat; } } public class LottoResult { @Override public String toString() { // 복잡한 String 변환 코드... } } 문제는 이렇게 완성하고 보니, 뷰의 책임은 굉장히 가벼워진 대신 출력을 구성하는 책임이 모델에게 넘어오게 되었다. DTO를 사용해 정보를 전달할 때, 도메인 객체의 toString()을 활용하여 String으로 파싱한 후 전달하였다. 즉 뷰에서 담당해야 하는 역할(출력을 어떻게 구성할지)을 도메인에서 담당하였다. 뷰 요구사항이 바뀔 경우, 도메인을 변경해야 하는 문제가 있을 것 같다. 뷰와 모델 간 어느 정도의 결합까지 허용해야 좋은 것인지, 그리고 클래스 책임 분배를 어떻게 해야 하는지는 언제나 어려운 문제인 것 같다. 프로젝트 전체 코드 References [1] DTO vs VO vs Entity [2] DTO의 사용 범위에 대하여 [3] DTO, Domain의 변환 위치에 대해서]]></summary></entry><entry><title type="html">Swift에서 Deque 구현하기</title><link href="https://metishonora.github.io/%EB%AC%B8%EC%A0%9C%ED%92%80%EC%9D%B4/2023/08/01/deque-with-swift.html" rel="alternate" type="text/html" title="Swift에서 Deque 구현하기" /><published>2023-08-01T00:00:00+00:00</published><updated>2023-08-01T00:00:00+00:00</updated><id>https://metishonora.github.io/%EB%AC%B8%EC%A0%9C%ED%92%80%EC%9D%B4/2023/08/01/deque-with-swift</id><content type="html" xml:base="https://metishonora.github.io/%EB%AC%B8%EC%A0%9C%ED%92%80%EC%9D%B4/2023/08/01/deque-with-swift.html"><![CDATA[<h2 id="문제">문제</h2>
+
+<p><a href="https://leetcode.com/problems/number-of-islands">Leetcode #200. Number of Islands</a></p>
+
+<p>Given an m x n 2D binary grid grid which represents a map of ‘1’s (land) and ‘0’s (water), return the number of islands.</p>
+
+<p>An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water.</p>
+
+<p>BFS 또는 DFS를 통해 연결된 land(연결된 1들)의 개수를 찾아내면 되는 문제로, 굉장히 단순해 보이는 문제다.</p>
+
+<h2 id="swift에는-deque이-없다">Swift에는 Deque이 없다.</h2>
+
+<p>그러나 C++, Java, Python등의 다른 언어와는 다르게,
+Swift는 Stack, Queue 또는 Deque를 자체 지원하지 않는다. <br />
+Swift의 Array 자료구조에서 지원하는 앞뒤쪽 insert(), remove()를 사용할 수 있지만,
+Array의 reference를 자세히 살펴보면 문제점을 알 수 있다.</p>
+
+<blockquote>
+  <p>insert(_:at:) <br />
+O(n), where n is the length of the array. [<a href="https://developer.apple.com/documentation/swift/array/insert(_:at:)-3erb3#discussion">1</a>]</p>
+</blockquote>
+
+<blockquote>
+  <p>removeFirst() <br />
+O(n), where n is the length of the collection. [<a href="https://developer.apple.com/documentation/swift/array/removefirst()">2</a>]</p>
+</blockquote>
+
+<p>맨 뒤쪽의 element를 삽입/제거하는 것은 O(1)으로 가능하지만, 맨 앞쪽의 element를 삽입/제거할 경우엔 O(N)이 걸리는 것을 확인할 수 있다.<br />
+두 메서드를 O(1)로 최적화해야 PS에서 정상적으로 사용할 수 있을 것이다.</p>
+
+<h2 id="deque의-구현">Deque의 구현</h2>
+<p>이에 관해 조사하면서 얻은 결론을 정리한다. <br />
+removeLast(), append(), reversed()의 시간 복잡도가 O(1)인 점에서 힌트를 얻을 수 있다. <br /></p>
+
+<p>아래처럼 생긴 Queue (Array)를 생각해 보자. <br />
+<img src="/assets/posts/230801-1.png" alt="img" /> <br /></p>
+
+<p>이 배열을 반으로 쪼개서, 앞쪽을 뒤집는다. 그러면 back만 2개인 배열을 만들 수 있다. <br />
+뒤집는 것은 O(1)의 reversed()를 활용한다.
+<img src="/assets/posts/230801-2.png" alt="img2" /> <br /></p>
+
+<h3 id="append-appendleft">append, appendLeft</h3>
+<p><img src="/assets/posts/230801-3.png" alt="img3" /> <br />
+left.append()와 right.append()를 사용하면
+앞쪽 배열과 뒤집힌 배열에 O(1)로 원소를 추가할 수 있다.</p>
+
+<p><em>(위)</em> right에 원소 추가<br />
+<em>(아래)</em> left에 원소 추가</p>
+
+<p>두 개의 배열을 합쳐 하나의 큰 Queue로 본다면,
+전체 Queue의 앞/뒤에 O(1)로 원소를 추가한 것으로 볼 수 있다.</p>
+
+<h3 id="pop-popleft">pop, popLeft</h3>
+<p><img src="/assets/posts/230801-4.png" alt="img4" /> <br />
+위 상황에서 전체 Queue의 앞/뒤쪽 원소를 꺼내려면 <em>left.removeLast()</em>, <em>right.removeLast()</em> 를 같은 방식으로 사용할 수 있다.</p>
+
+<p><img src="/assets/posts/230801-5.png" alt="img5" /> <br />
+다만 위쪽 그림처럼 한쪽이 비어있는 경우엔 다르게 접근해야 한다.</p>
+
+<p>먼저 left = right.reversed()를 진행하면 아래쪽 그림처럼 왼쪽 배열로 모든 원소를 옮길 수 있다. <br />
+이후 right를 비우고, <em>left.removeLast()</em> 를 실행하면 왼쪽 배열의 마지막 원소, 즉 전체 Queue의 첫 번째 원소를 꺼낼 수 있을 것이다.</p>
+
+<h2 id="풀이-코드">풀이 코드</h2>
+<p>이런 방식으로 Deque를 구현하고 BFS 및 DFS를 효율적으로 수행할 수 있다.<br /></p>
+
+<p>구체적인 구현에는 generic 및 computed property를 사용하였고,
+다른 문제에서도 사용할 수 있도록 일반화했다. <br /></p>
+
+<pre><code class="language-Swift">class Solution {
+    class Deque&lt;T&gt; {
+        var left: [T] = []
+        var right: [T] = []
+        var count: Int {
+            get {
+                return left.count + right.count
+            }
+        }
+        func append(_ element: T) {
+            right.append(element)
+        }
+        func appendLeft(_ element: T) {
+            left.append(element)
+        }
+        func pop() -&gt; T {
+            if right.isEmpty {
+                right = left.reversed()
+                left = []
+            }
+            return right.popLast()!
+        }
+        func popLeft() -&gt; T {
+            if left.isEmpty {
+                left = right.reversed()
+                right = []
+            }
+            return left.popLast()!
+        }
+    }
+
+    func numIslands(_ grid: [[Character]]) -&gt; Int {
+        let m = grid.count
+        let n = grid[0].count
+        var visited = [[Int]](repeating: [Int](repeating: 0, count: n), count: m)
+        var count = 0
+        var queue = Deque&lt;[Int]&gt;()
+        let dr = [-1, 1, 0, 0]
+        let dc = [0, 0, -1, 1]
+        for i in 0..&lt;m {
+            for j in 0..&lt;n {
+                if grid[i][j] == "1" &amp;&amp; visited[i][j] == 0 {
+                    count += 1
+                    visited[i][j] = 1
+                    queue.append([i, j])
+                    while queue.count &gt; 0 {
+                        var here = queue.popLeft()
+                        for k in 0...3 {
+                            let rr = here[0] + dr[k]
+                            let cc = here[1] + dc[k]
+                            if 0 &lt;= rr &amp;&amp; rr &lt; m &amp;&amp; 0 &lt;= cc &amp;&amp; cc &lt; n &amp;&amp; grid[rr][cc] == "1" &amp;&amp; visited[rr][cc] == 0 {
+                                visited[rr][cc] = 1
+                                queue.append([rr, cc])
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return count
+    }
+}
+</code></pre>
+
+<h2 id="결과">결과</h2>
+<p><img src="/assets/posts/230801-6.png" alt="img6" /></p>
+
+<h2 id="reference">Reference</h2>
+<p>[1] https://developer.apple.com/documentation/swift/array/insert(_:at:)-3erb3#discussion</p>
+
+<p>[2] https://developer.apple.com/documentation/swift/array/removefirst()</p>]]></content><author><name>Metishonora</name></author><category term="문제풀이" /><category term="Swift" /><category term="Leetcode" /><category term="자료구조" /><summary type="html"><![CDATA[문제 Leetcode #200. Number of Islands Given an m x n 2D binary grid grid which represents a map of ‘1’s (land) and ‘0’s (water), return the number of islands. An island is surrounded by water and is formed by connecting adjacent lands horizontally or vertically. You may assume all four edges of the grid are all surrounded by water. BFS 또는 DFS를 통해 연결된 land(연결된 1들)의 개수를 찾아내면 되는 문제로, 굉장히 단순해 보이는 문제다. Swift에는 Deque이 없다. 그러나 C++, Java, Python등의 다른 언어와는 다르게, Swift는 Stack, Queue 또는 Deque를 자체 지원하지 않는다. Swift의 Array 자료구조에서 지원하는 앞뒤쪽 insert(), remove()를 사용할 수 있지만, Array의 reference를 자세히 살펴보면 문제점을 알 수 있다. insert(_:at:) O(n), where n is the length of the array. [1] removeFirst() O(n), where n is the length of the collection. [2] 맨 뒤쪽의 element를 삽입/제거하는 것은 O(1)으로 가능하지만, 맨 앞쪽의 element를 삽입/제거할 경우엔 O(N)이 걸리는 것을 확인할 수 있다. 두 메서드를 O(1)로 최적화해야 PS에서 정상적으로 사용할 수 있을 것이다. Deque의 구현 이에 관해 조사하면서 얻은 결론을 정리한다. removeLast(), append(), reversed()의 시간 복잡도가 O(1)인 점에서 힌트를 얻을 수 있다. 아래처럼 생긴 Queue (Array)를 생각해 보자. 이 배열을 반으로 쪼개서, 앞쪽을 뒤집는다. 그러면 back만 2개인 배열을 만들 수 있다. 뒤집는 것은 O(1)의 reversed()를 활용한다. append, appendLeft left.append()와 right.append()를 사용하면 앞쪽 배열과 뒤집힌 배열에 O(1)로 원소를 추가할 수 있다. (위) right에 원소 추가 (아래) left에 원소 추가 두 개의 배열을 합쳐 하나의 큰 Queue로 본다면, 전체 Queue의 앞/뒤에 O(1)로 원소를 추가한 것으로 볼 수 있다. pop, popLeft 위 상황에서 전체 Queue의 앞/뒤쪽 원소를 꺼내려면 left.removeLast(), right.removeLast() 를 같은 방식으로 사용할 수 있다. 다만 위쪽 그림처럼 한쪽이 비어있는 경우엔 다르게 접근해야 한다. 먼저 left = right.reversed()를 진행하면 아래쪽 그림처럼 왼쪽 배열로 모든 원소를 옮길 수 있다. 이후 right를 비우고, left.removeLast() 를 실행하면 왼쪽 배열의 마지막 원소, 즉 전체 Queue의 첫 번째 원소를 꺼낼 수 있을 것이다. 풀이 코드 이런 방식으로 Deque를 구현하고 BFS 및 DFS를 효율적으로 수행할 수 있다. 구체적인 구현에는 generic 및 computed property를 사용하였고, 다른 문제에서도 사용할 수 있도록 일반화했다. class Solution { class Deque&lt;T&gt; { var left: [T] = [] var right: [T] = [] var count: Int { get { return left.count + right.count } } func append(_ element: T) { right.append(element) } func appendLeft(_ element: T) { left.append(element) } func pop() -&gt; T { if right.isEmpty { right = left.reversed() left = [] } return right.popLast()! } func popLeft() -&gt; T { if left.isEmpty { left = right.reversed() right = [] } return left.popLast()! } } func numIslands(_ grid: [[Character]]) -&gt; Int { let m = grid.count let n = grid[0].count var visited = [[Int]](repeating: [Int](repeating: 0, count: n), count: m) var count = 0 var queue = Deque&lt;[Int]&gt;() let dr = [-1, 1, 0, 0] let dc = [0, 0, -1, 1] for i in 0..&lt;m { for j in 0..&lt;n { if grid[i][j] == "1" &amp;&amp; visited[i][j] == 0 { count += 1 visited[i][j] = 1 queue.append([i, j]) while queue.count &gt; 0 { var here = queue.popLeft() for k in 0...3 { let rr = here[0] + dr[k] let cc = here[1] + dc[k] if 0 &lt;= rr &amp;&amp; rr &lt; m &amp;&amp; 0 &lt;= cc &amp;&amp; cc &lt; n &amp;&amp; grid[rr][cc] == "1" &amp;&amp; visited[rr][cc] == 0 { visited[rr][cc] = 1 queue.append([rr, cc]) } } } } } } return count } } 결과 Reference [1] https://developer.apple.com/documentation/swift/array/insert(_:at:)-3erb3#discussion [2] https://developer.apple.com/documentation/swift/array/removefirst()]]></summary></entry></feed>

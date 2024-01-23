@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="google-site-verification" content="X_Sk9dHytUBVYyETRCACtsXUTaafN_O2tT9yQMpSca8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>MVC 패턴으로 작성하기 | README.md</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta property="og:title" content="MVC 패턴으로 작성하기">
+<meta name="author" content="Metishonora">
+<meta property="og:locale" content="ko">
+<meta name="description" content="MVC 패턴 본질적인 질문이지만, MVC 패턴을 왜 사용할까? 짧은 견해로는 뷰와 모델 부분을 완전히 분리하는 것으로 결합도를 낮추고, 요구사항이 변경되더라도 코드를 재사용할 수 있도록 하기 위하는 것이라 생각한다 [1], [2]. 아래 사진은 Apple에서 발표한 Cocoa MVC 패턴[1], [4]을 표현하는 사진이다. 이번 글에서는 3주차 우테코 프리코스를 진행하면서 어떻게 MVC 패턴을 적용했는지, 코드의 재사용성을 높였는지, 그리고 고민한 부분이 무엇인지 소개하려고 한다. 참고로 3주차 과제의 요구사항은 여기에서 확인할 수 있다. Model 데이터 관련 책임을 담당한다. 컨트롤러와 뷰에 의존하지 않아야 한다. 즉, 컨트롤러와 뷰의 필드, 메서드를 가져다 쓰지 않는다. View 사용자 인터페이스를 담당한다. 컨트롤러에 의존하지 않아야 한다. 모델로부터 동적인 데이터만 받는다. (이 부분은 테코톡[3]의 내용을 재해석한 것입니다.) 정적인 데이터는 자체적으로 처리한다. Controller 모델과 뷰를 연결한다. 모델에서 데이터를 받아 뷰에 전달한다. 고민한 부분 컨트롤러의 역할 입력은 컨트롤러 클래스가 받을 것인가, 혹은 뷰 클래스가 받을 것인가? 뷰와 컨트롤러의 결합이 커지면, 컨트롤러가 하나의 뷰에 종속적일 수밖에 없다. [5] // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. int requestMoney() { ... return Integer.parseInt(Console.readLine()); } 콘솔(터미널)로부터 한 줄을 받고 정수로 변환하는, 현재 요구사항을 만족하는 구현이다. 하지만 갑작스럽게 요구사항이 바뀌어, HTTP POST로 입력을 받아야 한다면 뷰와 더불어 컨트롤러의 코드도 바꿔야 할 것이다. 즉 컨트롤러가 Console이라는 하나의 뷰에 종속적이라 할 수 있겠다. // LottoController.java int requestMoney() { ... return inputView.requestInteger(); } 따라서 컨트롤러에서는 InputView라는 뷰 인터페이스를 사용하게 하였다. 만약 요구사항이 변할 경우, InputView의 구현체를 ConsoleView에서 다른 클래스로 변경한다면, 컨트롤러 코드를 변경하지 않고 요구사항을 만족할 수 있을 것이다. 에러 핸들링 책임 이번 과제에는 로또 당첨 번호를 콘솔에서 입력받는 부분이 있다. 올바른 예시: 1,2,3,4,5,6 오류 예시 0,1,2,3,4,5 (로또 번호는 1~45의 범위만 존재한다) 10,10,10,10,10,10 (중복된 번호를 가질 수 없다) 1,3,5,7,9 (6개의 번호를 선택해야 한다) hello, world (숫자만 입력해야 한다) 입력이 들어왔을 때 각각의 에러 핸들링을 어디서 처리하는 게 코드 재사용성을 높일 수 있는가? 후보 1: 뷰에 에러 핸들링을 위임하고, 컨트롤러에 전달하기 (View의 메서드 로또_번호_입력받기()에서 하위 4개 메서드를 사용하는 것을 표현했다.) 화살표만 보면 뷰가 모델에 의존하지 않은 것 같지만, 암시적으로 의존한다고 표현하고 싶다. 왜냐하면 요구 사항이 변하여 로또 개수가 7개 번호로 변한다면 어떻게 될까? Lotto 모델만 변경하여 해결해야 할 문제를, 이 구성에서는 뷰의 메서드 수정을 피할 수 없다. 뷰에서 알아서는 안되는 로또 길이는 6개라는 정보를 알고 있기 때문이다. 후보 2: 역할에 따라 에러 핸들링 분배 논리적인 부분은 Model에서 처리, 형식적인 부분은 View에서 처리하도록 하였다. 이렇게 설계하는 것으로, 메서드의 이름을 보고 각각의 책임을 명확하게 할 수 있었다. 뷰에서는 정수 requestInteger()를 입력받는다. 원하는 입력 형식이 아니라면 오류를 출력한다. 각 모델은 컨트롤러가 넘겨준 값을 사용해 객체 new Money()를 생성한다. 논리적으로 잘못된 값이라면 오류를 출력한다. 컨트롤러는 뷰의 메서드를 호출하여, 결과값을 모델에게 넘긴다. 오류를 발견했다면 다시 뷰를 호출한다. 또한 뷰에서 제공하는 메서드를, 컨트롤러의 여러 부분에서 비슷한 형식으로 재사용할 수 있었다. // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. Money requestMoney() { while (true) { // 올바른 Money 객체가 만들어질 때까지 반복한다. try { return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 객체를 만드는 중, 어디에서든 illegalArgumentException이 발생했다면 // 적절한 에러 메시지를 출력한다. outputView.printError(e.getMessage()); } } } // 사용자로부터 보너스 당첨 번호를 입력받는다. BonusNumber requestBonusNumber() { while (true) { // 올바른 BonusNumber 객체가 만들어질 때까지 반복한다. try { return new BonusNumber(inputView.requestInteger()); } catch (IllegalArgumentException e) { outputView.printError(e.getMessage()); } } } 마치며 1, 2주차 프리코스 과제에서는 MVC 패턴을 적용하지 않고 절차적인 코드로 진행했었다. 이번 기회에 MVC 패턴을 활용해보면서 코드 재사용성과, 요구사항의 변화에 어떻게 대응할 수 있을지 깊게 생각해볼 수 있었다. 다음 글에서는 3주차에 공부했던 다른 개념들에 대해서 소개하려고 한다.">
+<meta property="og:description" content="MVC 패턴 본질적인 질문이지만, MVC 패턴을 왜 사용할까? 짧은 견해로는 뷰와 모델 부분을 완전히 분리하는 것으로 결합도를 낮추고, 요구사항이 변경되더라도 코드를 재사용할 수 있도록 하기 위하는 것이라 생각한다 [1], [2]. 아래 사진은 Apple에서 발표한 Cocoa MVC 패턴[1], [4]을 표현하는 사진이다. 이번 글에서는 3주차 우테코 프리코스를 진행하면서 어떻게 MVC 패턴을 적용했는지, 코드의 재사용성을 높였는지, 그리고 고민한 부분이 무엇인지 소개하려고 한다. 참고로 3주차 과제의 요구사항은 여기에서 확인할 수 있다. Model 데이터 관련 책임을 담당한다. 컨트롤러와 뷰에 의존하지 않아야 한다. 즉, 컨트롤러와 뷰의 필드, 메서드를 가져다 쓰지 않는다. View 사용자 인터페이스를 담당한다. 컨트롤러에 의존하지 않아야 한다. 모델로부터 동적인 데이터만 받는다. (이 부분은 테코톡[3]의 내용을 재해석한 것입니다.) 정적인 데이터는 자체적으로 처리한다. Controller 모델과 뷰를 연결한다. 모델에서 데이터를 받아 뷰에 전달한다. 고민한 부분 컨트롤러의 역할 입력은 컨트롤러 클래스가 받을 것인가, 혹은 뷰 클래스가 받을 것인가? 뷰와 컨트롤러의 결합이 커지면, 컨트롤러가 하나의 뷰에 종속적일 수밖에 없다. [5] // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. int requestMoney() { ... return Integer.parseInt(Console.readLine()); } 콘솔(터미널)로부터 한 줄을 받고 정수로 변환하는, 현재 요구사항을 만족하는 구현이다. 하지만 갑작스럽게 요구사항이 바뀌어, HTTP POST로 입력을 받아야 한다면 뷰와 더불어 컨트롤러의 코드도 바꿔야 할 것이다. 즉 컨트롤러가 Console이라는 하나의 뷰에 종속적이라 할 수 있겠다. // LottoController.java int requestMoney() { ... return inputView.requestInteger(); } 따라서 컨트롤러에서는 InputView라는 뷰 인터페이스를 사용하게 하였다. 만약 요구사항이 변할 경우, InputView의 구현체를 ConsoleView에서 다른 클래스로 변경한다면, 컨트롤러 코드를 변경하지 않고 요구사항을 만족할 수 있을 것이다. 에러 핸들링 책임 이번 과제에는 로또 당첨 번호를 콘솔에서 입력받는 부분이 있다. 올바른 예시: 1,2,3,4,5,6 오류 예시 0,1,2,3,4,5 (로또 번호는 1~45의 범위만 존재한다) 10,10,10,10,10,10 (중복된 번호를 가질 수 없다) 1,3,5,7,9 (6개의 번호를 선택해야 한다) hello, world (숫자만 입력해야 한다) 입력이 들어왔을 때 각각의 에러 핸들링을 어디서 처리하는 게 코드 재사용성을 높일 수 있는가? 후보 1: 뷰에 에러 핸들링을 위임하고, 컨트롤러에 전달하기 (View의 메서드 로또_번호_입력받기()에서 하위 4개 메서드를 사용하는 것을 표현했다.) 화살표만 보면 뷰가 모델에 의존하지 않은 것 같지만, 암시적으로 의존한다고 표현하고 싶다. 왜냐하면 요구 사항이 변하여 로또 개수가 7개 번호로 변한다면 어떻게 될까? Lotto 모델만 변경하여 해결해야 할 문제를, 이 구성에서는 뷰의 메서드 수정을 피할 수 없다. 뷰에서 알아서는 안되는 로또 길이는 6개라는 정보를 알고 있기 때문이다. 후보 2: 역할에 따라 에러 핸들링 분배 논리적인 부분은 Model에서 처리, 형식적인 부분은 View에서 처리하도록 하였다. 이렇게 설계하는 것으로, 메서드의 이름을 보고 각각의 책임을 명확하게 할 수 있었다. 뷰에서는 정수 requestInteger()를 입력받는다. 원하는 입력 형식이 아니라면 오류를 출력한다. 각 모델은 컨트롤러가 넘겨준 값을 사용해 객체 new Money()를 생성한다. 논리적으로 잘못된 값이라면 오류를 출력한다. 컨트롤러는 뷰의 메서드를 호출하여, 결과값을 모델에게 넘긴다. 오류를 발견했다면 다시 뷰를 호출한다. 또한 뷰에서 제공하는 메서드를, 컨트롤러의 여러 부분에서 비슷한 형식으로 재사용할 수 있었다. // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. Money requestMoney() { while (true) { // 올바른 Money 객체가 만들어질 때까지 반복한다. try { return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 객체를 만드는 중, 어디에서든 illegalArgumentException이 발생했다면 // 적절한 에러 메시지를 출력한다. outputView.printError(e.getMessage()); } } } // 사용자로부터 보너스 당첨 번호를 입력받는다. BonusNumber requestBonusNumber() { while (true) { // 올바른 BonusNumber 객체가 만들어질 때까지 반복한다. try { return new BonusNumber(inputView.requestInteger()); } catch (IllegalArgumentException e) { outputView.printError(e.getMessage()); } } } 마치며 1, 2주차 프리코스 과제에서는 MVC 패턴을 적용하지 않고 절차적인 코드로 진행했었다. 이번 기회에 MVC 패턴을 활용해보면서 코드 재사용성과, 요구사항의 변화에 어떻게 대응할 수 있을지 깊게 생각해볼 수 있었다. 다음 글에서는 3주차에 공부했던 다른 개념들에 대해서 소개하려고 한다.">
+<link rel="canonical" href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html">
+<meta property="og:url" content="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html">
+<meta property="og:site_name" content="README.md">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-11-07T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="MVC 패턴으로 작성하기">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Metishonora"},"dateModified":"2023-11-07T00:00:00+00:00","datePublished":"2023-11-07T00:00:00+00:00","description":"MVC 패턴 본질적인 질문이지만, MVC 패턴을 왜 사용할까? 짧은 견해로는 뷰와 모델 부분을 완전히 분리하는 것으로 결합도를 낮추고, 요구사항이 변경되더라도 코드를 재사용할 수 있도록 하기 위하는 것이라 생각한다 [1], [2]. 아래 사진은 Apple에서 발표한 Cocoa MVC 패턴[1], [4]을 표현하는 사진이다. 이번 글에서는 3주차 우테코 프리코스를 진행하면서 어떻게 MVC 패턴을 적용했는지, 코드의 재사용성을 높였는지, 그리고 고민한 부분이 무엇인지 소개하려고 한다. 참고로 3주차 과제의 요구사항은 여기에서 확인할 수 있다. Model 데이터 관련 책임을 담당한다. 컨트롤러와 뷰에 의존하지 않아야 한다. 즉, 컨트롤러와 뷰의 필드, 메서드를 가져다 쓰지 않는다. View 사용자 인터페이스를 담당한다. 컨트롤러에 의존하지 않아야 한다. 모델로부터 동적인 데이터만 받는다. (이 부분은 테코톡[3]의 내용을 재해석한 것입니다.) 정적인 데이터는 자체적으로 처리한다. Controller 모델과 뷰를 연결한다. 모델에서 데이터를 받아 뷰에 전달한다. 고민한 부분 컨트롤러의 역할 입력은 컨트롤러 클래스가 받을 것인가, 혹은 뷰 클래스가 받을 것인가? 뷰와 컨트롤러의 결합이 커지면, 컨트롤러가 하나의 뷰에 종속적일 수밖에 없다. [5] // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. int requestMoney() { ... return Integer.parseInt(Console.readLine()); } 콘솔(터미널)로부터 한 줄을 받고 정수로 변환하는, 현재 요구사항을 만족하는 구현이다. 하지만 갑작스럽게 요구사항이 바뀌어, HTTP POST로 입력을 받아야 한다면 뷰와 더불어 컨트롤러의 코드도 바꿔야 할 것이다. 즉 컨트롤러가 Console이라는 하나의 뷰에 종속적이라 할 수 있겠다. // LottoController.java int requestMoney() { ... return inputView.requestInteger(); } 따라서 컨트롤러에서는 InputView라는 뷰 인터페이스를 사용하게 하였다. 만약 요구사항이 변할 경우, InputView의 구현체를 ConsoleView에서 다른 클래스로 변경한다면, 컨트롤러 코드를 변경하지 않고 요구사항을 만족할 수 있을 것이다. 에러 핸들링 책임 이번 과제에는 로또 당첨 번호를 콘솔에서 입력받는 부분이 있다. 올바른 예시: 1,2,3,4,5,6 오류 예시 0,1,2,3,4,5 (로또 번호는 1~45의 범위만 존재한다) 10,10,10,10,10,10 (중복된 번호를 가질 수 없다) 1,3,5,7,9 (6개의 번호를 선택해야 한다) hello, world (숫자만 입력해야 한다) 입력이 들어왔을 때 각각의 에러 핸들링을 어디서 처리하는 게 코드 재사용성을 높일 수 있는가? 후보 1: 뷰에 에러 핸들링을 위임하고, 컨트롤러에 전달하기 (View의 메서드 로또_번호_입력받기()에서 하위 4개 메서드를 사용하는 것을 표현했다.) 화살표만 보면 뷰가 모델에 의존하지 않은 것 같지만, 암시적으로 의존한다고 표현하고 싶다. 왜냐하면 요구 사항이 변하여 로또 개수가 7개 번호로 변한다면 어떻게 될까? Lotto 모델만 변경하여 해결해야 할 문제를, 이 구성에서는 뷰의 메서드 수정을 피할 수 없다. 뷰에서 알아서는 안되는 로또 길이는 6개라는 정보를 알고 있기 때문이다. 후보 2: 역할에 따라 에러 핸들링 분배 논리적인 부분은 Model에서 처리, 형식적인 부분은 View에서 처리하도록 하였다. 이렇게 설계하는 것으로, 메서드의 이름을 보고 각각의 책임을 명확하게 할 수 있었다. 뷰에서는 정수 requestInteger()를 입력받는다. 원하는 입력 형식이 아니라면 오류를 출력한다. 각 모델은 컨트롤러가 넘겨준 값을 사용해 객체 new Money()를 생성한다. 논리적으로 잘못된 값이라면 오류를 출력한다. 컨트롤러는 뷰의 메서드를 호출하여, 결과값을 모델에게 넘긴다. 오류를 발견했다면 다시 뷰를 호출한다. 또한 뷰에서 제공하는 메서드를, 컨트롤러의 여러 부분에서 비슷한 형식으로 재사용할 수 있었다. // LottoController.java // 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다. Money requestMoney() { while (true) { // 올바른 Money 객체가 만들어질 때까지 반복한다. try { return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 객체를 만드는 중, 어디에서든 illegalArgumentException이 발생했다면 // 적절한 에러 메시지를 출력한다. outputView.printError(e.getMessage()); } } } // 사용자로부터 보너스 당첨 번호를 입력받는다. BonusNumber requestBonusNumber() { while (true) { // 올바른 BonusNumber 객체가 만들어질 때까지 반복한다. try { return new BonusNumber(inputView.requestInteger()); } catch (IllegalArgumentException e) { outputView.printError(e.getMessage()); } } } 마치며 1, 2주차 프리코스 과제에서는 MVC 패턴을 적용하지 않고 절차적인 코드로 진행했었다. 이번 기회에 MVC 패턴을 활용해보면서 코드 재사용성과, 요구사항의 변화에 어떻게 대응할 수 있을지 깊게 생각해볼 수 있었다. 다음 글에서는 3주차에 공부했던 다른 개념들에 대해서 소개하려고 한다.","headline":"MVC 패턴으로 작성하기","mainEntityOfPage":{"@type":"WebPage","@id":"https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html"},"url":"https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="/assets/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="https://metishonora.github.io/feed.xml" title="README.md">
+<!-- Google tag (gtag.js) -->
+<script>
+  function initGoogleAnalytics() {
+    var doNotTrack = (window.doNotTrack === "1" || navigator.doNotTrack === "1" ||
+      navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1");
+    var enableDNT = "true" == "true";
+
+    if (!enableDNT || !doNotTrack) {
+      var measurementId = 'G-3ZE0SQ8DC0';
+
+      (function(src) {
+        var tag = document.createElement('script');
+        tag.src = src;
+        tag.async = true;
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      })('https://www.googletagmanager.com/gtag/js?id=' + measurementId);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', measurementId);
+    }
+  }
+  window.addEventListener("load", initGoogleAnalytics);
+</script>
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/default-skin/default-skin.css" rel="stylesheet">
+<style>
+  .pswp .pswp__container .pswp__img {
+    background-color: white;
+  }
+</style>
+
+<script>
+  function initPhotoSwipe() {
+    var mainEl = document.querySelector("section.main");
+
+    var imgEls = mainEl.querySelectorAll("img:not(.emoji)");
+    imgEls.forEach((imgEl) => {
+      imgEl.outerHTML = `
+    <a class="photo-swipe"
+      href="${imgEl.src}"
+      data-width="${imgEl.getAttribute("width") || imgEl.width * 2}"
+      data-height="${imgEl.getAttribute("height") || imgEl.height * 2}"
+      data-caption="${imgEl.getAttribute("caption") || imgEl.alt}"
+      target="_blank">
+      ${imgEl.outerHTML}
+    </a>`;
+    });
+
+    // Init empty gallery array
+    var container = [];
+
+    // Loop over gallery items and push it to the array
+    var linkEls = mainEl.querySelectorAll("a.photo-swipe");
+    linkEls.forEach((link) => {
+      var item = {
+        src: link.getAttribute("href"),
+        w: link.dataset.width,
+        h: link.dataset.height,
+        title: link.dataset.caption || "",
+      };
+      container.push(item);
+    });
+
+    // Define click event on gallery item
+    linkEls.forEach((link, index) => {
+      link.addEventListener("click", (event) => {
+        // Prevent location change
+        event.preventDefault();
+
+        // Define object and gallery options
+        var pswp = document.querySelector(".pswp");
+
+        var zoomLevel = 1;
+
+        // Define object and gallery options
+        var options = {
+          index: index,
+          bgOpacity: 0.85,
+          showHideOpacity: true,
+          closeOnScroll: true,
+          maxSpreadZoom: 1,
+          getDoubleTapZoom: (isMouseClick, item) => {
+            if (item.detail) {
+              zoomLevel += item.detail.origEvent.shiftKey ? -1 : 1;
+              item.detail = undefined;
+            } else {
+              zoomLevel = zoomLevel === 1 ? 2 : 1;
+            }
+            if (zoomLevel <= 1) {
+              zoomLevel = 1;
+              setTimeout(() => pswp.classList.remove("pswp--zoomed-in"), 0);
+            }
+            return item.initialZoomLevel * zoomLevel;
+          },
+        };
+
+        // Initialize PhotoSwipe
+        var gallery = new PhotoSwipe(
+          pswp,
+          PhotoSwipeUI_Default,
+          container,
+          options
+        );
+
+        gallery.init();
+
+        // Custom zoom event
+        gallery.container.addEventListener("pswpTap", (e) => {
+          gallery.currItem.detail = e.detail;
+        });
+      });
+    });
+  }
+
+  window.addEventListener("load", initPhotoSwipe);
+</script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+</head>
+<body>
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+  <!-- Background of PhotoSwipe.
+           It's a separate element as animating opacity is faster than rgba(). -->
+  <div class="pswp__bg"></div>
+  <!-- Slides wrapper with overflow:hidden. -->
+  <div class="pswp__scroll-wrap">
+    <!-- Container that holds slides.
+              PhotoSwipe keeps only 3 of them in the DOM to save memory.
+              Don't modify these 3 pswp__item elements, data is added later on. -->
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+    <div class="pswp__ui pswp__ui--hidden">
+      <div class="pswp__top-bar">
+        <!--  Controls are self-explanatory. Order can be changed. -->
+        <div class="pswp__counter"></div>
+        <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+        <button class="pswp__button pswp__button--share" title="Share"></button>
+        <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+        <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+        <!-- element will get class pswp__preloader--active when preloader is running -->
+        <div class="pswp__preloader">
+          <div class="pswp__preloader__icn">
+            <div class="pswp__preloader__cut">
+              <div class="pswp__preloader__donut"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+        <div class="pswp__share-tooltip"></div>
+      </div>
+      <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+      <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+      <div class="pswp__caption">
+        <div class="pswp__caption__center"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner">
+<span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="README.md" src="/assets/favicon.ico" onerror="this.style.display='none'">
+  README.md
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger">
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewbox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger">
+<a class="page-link" href="/about.html">GITHUB</a><a class="page-link" href="/archives.html">ARCHIVES</a><a class="page-link" href="/categories.html">CATEGORIES</a><a class="page-link" href="/tags.html">TAGS</a><a class="page-link" href="/index.html">MAIN</a>
+
+
+
+
+
+
+
+
+
+<!--
+              <span class="page-link">
+
+
+
+<div id="google_translate_element" style="display: none;">
+</div>
+
+<span class="ct-language">
+  <ul class="list-unstyled ct-language-dropdown">
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="en">
+          
+          <img src="https://cdn.countryflags.com/thumbs/united-states-of-america/flag-400.png" title="English">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="fr">
+          
+          <img src="https://cdn.countryflags.com/thumbs/france/flag-400.png" title="French">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="zh-CN">
+          
+          <img src="https://cdn.countryflags.com/thumbs/china/flag-400.png" title="Chinese(Simple)">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ja">
+          
+          <img src="https://cdn.countryflags.com/thumbs/japan/flag-400.png" title="Japanese">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ko">
+          
+          <img src="https://cdn.countryflags.com/thumbs/south-korea/flag-400.png" title="Korean">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ru">
+          
+          <img src="https://cdn.countryflags.com/thumbs/russia/flag-400.png" title="Russian">
+          
+        </a>
+      </li>
+    
+  </ul>
+</span>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'ko',
+    autoDisplay: false,
+    layout: google.translate.TranslateElement.InlineLayout.VERTICAL
+  }, 'google_translate_element');
+
+  // Links to cross-origin destinations are unsafe
+  var gll = document.getElementsByClassName('goog-logo-link')[0];
+  if (gll) {
+    gll.setAttribute('rel', 'noopener');
+  }
+
+  function restoreLang() {
+    var iframe = document.getElementsByClassName('goog-te-banner-frame')[0];
+    if (!iframe) return;
+
+    var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    var restore_el = innerDoc.getElementsByTagName("button");
+
+    for (var i = 0; i < restore_el.length; i++) {
+      if (restore_el[i].id.indexOf("restore") >= 0) {
+        restore_el[i].click();
+        var close_el = innerDoc.getElementsByClassName("goog-close-link");
+        close_el[0].click();
+        return;
+      }
+    }
+  }
+
+  function triggerHtmlEvent(element, eventName) {
+    var event;
+    if (document.createEvent) {
+      event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    } else {
+      event = document.createEventObject();
+      event.eventType = eventName;
+      element.fireEvent('on' + event.eventType, event);
+    }
+  }
+
+  var googleCombo = document.querySelector("select.goog-te-combo");
+  var langSelect = document.querySelector('.ct-language');
+  langSelect.addEventListener('click', function(event) {
+    if (!event.target) {
+      return;
+    }
+
+    var selected = document.querySelector('.ct-language .ct-language-selected');
+    if (selected) {
+      selected.classList.remove('ct-language-selected');
+    }
+
+    var target = event.target;
+    while (target && target !== langSelect ) {
+      if (target.matches('.lang-select')) {
+        break;
+      }
+      target = target.parentElement;
+    }
+
+    if (target && target.matches('.lang-select')) {
+      var lang = target.getAttribute('data-lang');
+      if (googleCombo.value == lang) {
+        restoreLang();
+      } else {
+        target.parentElement.classList.add('ct-language-selected');
+        googleCombo.value = lang;
+        triggerHtmlEvent(googleCombo, 'change');
+      }
+    }
+
+    event.preventDefault();
+  });
+}
+</script>
+
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</span>
+              -->
+</div>
+        </nav>
+</div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('auto' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+
+
+
+
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">MVC 패턴으로 작성하기</h1>
+  <h2 class="post-subtitle">우테코 6기 프리코스 3주차</h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2023-11-07T00:00:00+00:00" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-11-07
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> about 5 mins to read</span>
+  </p>
+<div class="post-tags">
+<a class="post-tag" href="/tags.html#%EC%9A%B0%ED%85%8C%EC%BD%94%ED%94%84%EB%A6%AC%EC%BD%94%EC%8A%A4">#우테코프리코스</a><a class="post-tag" href="/tags.html#MVC">#MVC</a>
+</div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <h2 id="mvc-패턴">MVC 패턴</h2>
+<p>본질적인 질문이지만, MVC 패턴을 왜 사용할까?</p>
+
+<p>짧은 견해로는 뷰와 모델 부분을 완전히 분리하는 것으로 결합도를 낮추고,
+요구사항이 변경되더라도 코드를 재사용할 수 있도록 하기 위하는 것이라 생각한다 [<a href="https://developer.apple.com/library/archive/documentation/General/Conceptual/CocoaEncyclopedia/Model-View-Controller/Model-View-Controller.html#//apple_ref/doc/uid/TP40010810-CH14">1</a>], [<a href="https://mccoy-devloper.tistory.com/120">2</a>].</p>
+
+<p>아래 사진은 Apple에서 발표한 Cocoa MVC 패턴[<a href="https://developer.apple.com/library/archive/documentation/General/Conceptual/CocoaEncyclopedia/Model-View-Controller/Model-View-Controller.html#//apple_ref/doc/uid/TP40010810-CH14">1</a>], [<a href="https://velog.io/@yohanblessyou/MVC%EC%99%80-Cocoa-MVC#-mvc-%EA%B0%9D%EC%B2%B4%EB%93%A4%EC%9D%98-%EC%97%AD%ED%95%A0%EA%B3%BC-%EA%B4%80%EA%B3%84">4</a>]을 표현하는 사진이다.
+이번 글에서는 3주차 우테코 프리코스를 진행하면서 어떻게 MVC 패턴을 적용했는지,
+코드의 재사용성을 높였는지,
+그리고 고민한 부분이 무엇인지 소개하려고 한다.</p>
+
+<p>참고로 3주차 과제의 요구사항은 <a href="https://github.com/metishonora/java-lotto-6/tree/metishonora">여기</a>에서 확인할 수 있다.</p>
+
+<p><img src="/assets/posts/231107-1.png" alt="mvc-pattern-picture"></p>
+
+<h3 id="model">Model</h3>
+<ul>
+  <li>데이터 관련 책임을 담당한다.</li>
+  <li>컨트롤러와 뷰에 의존하지 않아야 한다. 즉, 컨트롤러와 뷰의 필드, 메서드를 가져다 쓰지 않는다.</li>
+</ul>
+
+<h3 id="view">View</h3>
+<ul>
+  <li>사용자 인터페이스를 담당한다.</li>
+  <li>컨트롤러에 의존하지 않아야 한다.</li>
+  <li>모델로부터 동적인 데이터만 받는다. (<em>이 부분은 테코톡[<a href="https://www.youtube.com/watch?v=ogaXW6KPc8I">3</a>]의 내용을 재해석한 것입니다.</em>)</li>
+  <li>정적인 데이터는 자체적으로 처리한다.</li>
+</ul>
+
+<h3 id="controller">Controller</h3>
+<ul>
+  <li>모델과 뷰를 연결한다.</li>
+  <li>모델에서 데이터를 받아 뷰에 전달한다.</li>
+</ul>
+
+<h2 id="고민한-부분">고민한 부분</h2>
+
+<h3 id="컨트롤러의-역할">컨트롤러의 역할</h3>
+<p>입력은 컨트롤러 클래스가 받을 것인가, 혹은 뷰 클래스가 받을 것인가?</p>
+<blockquote>
+  <p>뷰와 컨트롤러의 결합이 커지면, 컨트롤러가 하나의 뷰에 종속적일 수밖에 없다. [<a href="https://velog.io/@hdg3052/Controller%EC%9D%98-%EC%97%AD%ED%95%A0">5</a>]</p>
+</blockquote>
+
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// LottoController.java</span>
+<span class="c1">// 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다.</span>
+<span class="kt">int</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+	<span class="o">...</span>
+	<span class="k">return</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="nc">Console</span><span class="o">.</span><span class="na">readLine</span><span class="o">());</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>콘솔(터미널)로부터 한 줄을 받고 정수로 변환하는, 현재 요구사항을 만족하는 구현이다.
+하지만 갑작스럽게 요구사항이 바뀌어, HTTP POST로 입력을 받아야 한다면 뷰와 더불어 컨트롤러의 코드도 바꿔야 할 것이다.
+즉 컨트롤러가 Console이라는 하나의 뷰에 종속적이라 할 수 있겠다.</p>
+
+<p><img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5Mb3R0b0NvbnRyb2xsZXIgLi4-IElucHV0VmlldyA6IHVzZXNcbmNsYXNzIElucHV0VmlldyB7XG48PGludGVyZmFjZT4-XG59XG5JbnB1dFZpZXcgPHwtLSBIdHRwVmlldyA6IGltcGxlbWVudHNcbklucHV0VmlldyA8fC0tIENvbnNvbGVWaWV3IDogaW1wbGVtZW50cyIsIm1lcm1haWQiOm51bGx9"></p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// LottoController.java</span>
+<span class="kt">int</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+	<span class="o">...</span>
+	<span class="k">return</span> <span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>따라서 컨트롤러에서는 InputView라는 뷰 인터페이스를 사용하게 하였다.
+만약 요구사항이 변할 경우, InputView의 구현체를 ConsoleView에서 다른 클래스로 변경한다면,
+컨트롤러 코드를 변경하지 않고 요구사항을 만족할 수 있을 것이다.</p>
+
+<h3 id="에러-핸들링-책임">에러 핸들링 책임</h3>
+
+<p>이번 과제에는 로또 당첨 번호를 콘솔에서 입력받는 부분이 있다.</p>
+<ul>
+  <li>올바른 예시: 1,2,3,4,5,6</li>
+  <li>오류 예시
+    <ul>
+      <li>0,1,2,3,4,5 		(로또 번호는 1~45의 범위만 존재한다)</li>
+      <li>10,10,10,10,10,10 	(중복된 번호를 가질 수 없다)</li>
+      <li>1,3,5,7,9 		(6개의 번호를 선택해야 한다)</li>
+      <li>hello, world 		(숫자만 입력해야 한다)</li>
+    </ul>
+  </li>
+</ul>
+
+<p>입력이 들어왔을 때 각각의 에러 핸들링을 어디서 처리하는 게 코드 재사용성을 높일 수 있는가?</p>
+
+<p><strong>후보 1: 뷰에 에러 핸들링을 위임하고, 컨트롤러에 전달하기</strong>
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5jbGFzcyBDb250cm9sbGVyIHtcblZpZXftmLjstpwoKVxuTG90dG_qsJ3ssrTsg53shLEoKVxufVxuY2xhc3MgVmlldyB7XG7roZzrmJDrsojtmLhf7J6F66Cl67Cb6riwKClcbi0tIO2VnF_spIRf7J6F66Cl67Cb6riwKClcbi0tIOyIq-yekOyduOyngF_tmZXsnbjtlZjquLAoKVxuLS0gNuqwnOyduOyngF_tmZXsnbjtlZjquLAoKVxuLS0g7KSR67O1X-uyiO2YuF_tmZXsnbjtlZjquLAoKVxufVxuTG90dG8gPHwtLSBDb250cm9sbGVyIDog7IOd7ISxXG5Db250cm9sbGVyIDx8LS0gVmlldyA6IOyZhOyEseuQnCDsoJXsiJgg66as7Iqk7Yq4IOyghOuLrCIsIm1lcm1haWQiOm51bGx9">
+(View의 메서드 <strong>로또_번호_입력받기()</strong>에서 하위 4개 메서드를 사용하는 것을 표현했다.)</p>
+
+<p>화살표만 보면 뷰가 모델에 의존하지 않은 것 같지만, <strong>암시적으로 의존한다</strong>고 표현하고 싶다.
+왜냐하면 요구 사항이 변하여 로또 개수가 7개 번호로 변한다면 어떻게 될까?
+Lotto 모델만 변경하여 해결해야 할 문제를, 이 구성에서는 뷰의 메서드 수정을 피할 수 없다.
+뷰에서 알아서는 안되는 <strong>로또 길이는 6개</strong>라는 정보를 알고 있기 때문이다.</p>
+
+<p><strong>후보 2: 역할에 따라 에러 핸들링 분배</strong></p>
+
+<p>논리적인 부분은 Model에서 처리, 형식적인 부분은 View에서 처리하도록 하였다.
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG5jbGFzcyBMb3R0byB7XG7spJHrs7Vf67KI7Zi4X-2ZleyduCgpXG426rCc7J247KeAX-2ZleyduCgpXG7siKvsnpBf67KU7JyEX-2ZleyduCgpXG59XG5jbGFzcyBDb250cm9sbGVyIHtcbuuwmOuztTpcblZpZXftmLjstpwoKVxuTG90dG_qsJ3ssrTsg53shLEoKVxufVxuY2xhc3MgVmlldyB7XG7soJXsiJhf7J6F66Cl67Cb6riwKClcbi0tIO2VnF_spIRf7J6F66Cl67Cb6riwKClcbi0tIOygleyImOyduOyngF_tmZXsnbgoKVxufVxuTG90dG8gPHwtLSBDb250cm9sbGVyIDog7IOd7ISxXG5Db250cm9sbGVyIDx8LS0gVmlldyA6IOygleyImCDsoITri6wiLCJtZXJtYWlkIjpudWxsfQ">
+이렇게 설계하는 것으로, 메서드의 이름을 보고 각각의 책임을 명확하게 할 수 있었다.</p>
+<ul>
+  <li>뷰에서는 정수 <em>requestInteger()</em>를 입력받는다. 원하는 입력 형식이 아니라면 오류를 출력한다.</li>
+  <li>각 모델은 컨트롤러가 넘겨준 값을 사용해 객체 <em>new Money()</em>를 생성한다. 논리적으로 잘못된 값이라면 오류를 출력한다.</li>
+  <li>컨트롤러는 뷰의 메서드를 호출하여, 결과값을 모델에게 넘긴다. 오류를 발견했다면 다시 뷰를 호출한다.</li>
+</ul>
+
+<p>또한 뷰에서 제공하는 메서드를, 컨트롤러의 여러 부분에서 비슷한 형식으로 재사용할 수 있었다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// LottoController.java</span>
+
+<span class="c1">// 사용자로부터 로또를 구입하기 위한 총 예산을 입력받는다.</span>
+<span class="nc">Money</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+	<span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// 올바른 Money 객체가 만들어질 때까지 반복한다.</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="k">new</span> <span class="nf">Money</span><span class="o">(</span><span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="c1">// 객체를 만드는 중, 어디에서든 illegalArgumentException이 발생했다면</span>
+			<span class="c1">// 적절한 에러 메시지를 출력한다.</span>
+			<span class="n">outputView</span><span class="o">.</span><span class="na">printError</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// 사용자로부터 보너스 당첨 번호를 입력받는다.</span>
+<span class="nc">BonusNumber</span> <span class="nf">requestBonusNumber</span><span class="o">()</span> <span class="o">{</span>
+	<span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>  <span class="c1">// 올바른 BonusNumber 객체가 만들어질 때까지 반복한다.</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="k">new</span> <span class="nf">BonusNumber</span><span class="o">(</span><span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="n">outputView</span><span class="o">.</span><span class="na">printError</span><span class="o">(</span><span class="n">e</span><span class="o">.</span><span class="na">getMessage</span><span class="o">());</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<h2 id="마치며">마치며</h2>
+<p>1, 2주차 프리코스 과제에서는 MVC 패턴을 적용하지 않고 절차적인 코드로 진행했었다.
+이번 기회에 MVC 패턴을 활용해보면서 코드 재사용성과, 요구사항의 변화에 어떻게 대응할 수 있을지
+깊게 생각해볼 수 있었다.</p>
+
+<p>다음 글에서는 3주차에 공부했던 다른 개념들에 대해서 소개하려고 한다.</p>
+
+
+
+    </div>
+
+</article>
+<div class="post-nav">
+<a class="previous" href="/%EB%AC%B8%EC%A0%9C%ED%92%80%EC%9D%B4/2023/08/01/deque-with-swift.html" title="Swift에서 Deque 구현하기">Swift에서 Deque 구현하기</a><a class="next" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto.html" title="캡슐화를 돕는 DTO 사용기">캡슐화를 돕는 DTO 사용기</a>
+</div>
+    <div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/1-woowacourse-pre3-composition.html" title="상속과 조합 클래스">상속과 조합 클래스</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto.html" title="캡슐화를 돕는 DTO 사용기">캡슐화를 돕는 DTO 사용기</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html" title="클린 코드 작성하기 - 우테코를 마치며">클린 코드 작성하기 - 우테코를 마치며</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html" title="좋은 단위 테스트 작성하기">좋은 단위 테스트 작성하기</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/2-woowacourse-pre3-factory.html" title="생성자를 숨기는 팩토리 메서드">생성자를 숨기는 팩토리 메서드</a></li>
+        
+      </ul>
+    </div>
+    <div class="post-comments">
+<div id="utterances-placeholder"></div>
+<script>
+  const utterancesThemeFromDataTheme = () => {
+    const dataTheme = document.documentElement.getAttribute('data-theme');
+    return `github-${dataTheme}`;
+  };
+
+  const setUtterancesTheme = () => {
+    const iframe = document.querySelector('.utterances-frame');
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: utterancesThemeFromDataTheme()
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es');
+    }
+  }
+
+  // dynamic change
+  const observer = new MutationObserver((mutationsList, observer) => {
+    for (let mutation of mutationsList) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        setUtterancesTheme();
+      }
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true, childList: false, subtree: false });
+
+  let utterancesScript = document.createElement('script');
+  utterancesScript.async = true;
+  utterancesScript.src = 'https://utteranc.es/client.js';
+  utterancesScript.crossOrigin = 'anonymous';
+  utterancesScript.setAttribute('issue-term', 'title');
+  utterancesScript.setAttribute('label', '💬');
+  utterancesScript.setAttribute('repo', 'metishonora/metishonora');
+  utterancesScript.setAttribute('theme', utterancesThemeFromDataTheme());
+
+  const placeholder = document.getElementById('utterances-placeholder');
+  placeholder.parentNode.replaceChild(utterancesScript, placeholder);
+</script>
+</div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">목차</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+<div>
+<span class="copyleft">©</span> 2024 S G Kim</div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="https://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div class="footer-col rss-subscribe">Subscribe <a href="/feed.xml">via RSS</a>
+</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>

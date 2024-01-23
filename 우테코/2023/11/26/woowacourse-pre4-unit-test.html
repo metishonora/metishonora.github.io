@@ -1,0 +1,1482 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="google-site-verification" content="X_Sk9dHytUBVYyETRCACtsXUTaafN_O2tT9yQMpSca8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="google-translate-customization" content="108d9124921d80c3-80e20d618ff053c8-g4f02ec6f3dba68b7-c">
+<!-- Begin Jekyll SEO tag v2.8.0 -->
+<title>좋은 단위 테스트 작성하기 | README.md</title>
+<meta name="generator" content="Jekyll v4.3.3">
+<meta property="og:title" content="좋은 단위 테스트 작성하기">
+<meta name="author" content="Metishonora">
+<meta property="og:locale" content="ko">
+<meta name="description" content='공통 피드백 우테코 3주차를 마치고 제공받은 공통 피드백 중, 관심사 분리와 테스트 작성에 관한 내용이 눈에 띄었다. 테스트하기 어려운 것은 객체 분리를 고민하라. UI 로직이 아니라, 비즈니스 로직에 대한 단위 테스트를 작성하라. 테스트 코드도 코드이므로 리팩토링을 통해 개선해야 한다. 돌아보는 3주차 코드 3주차 과제에서 사용자에게 입력 받는 코드는 이렇게 구성했다. // 컨트롤러 public class Controller { Money requestMoney() { while (true) { try { // 1000으로 나누어 떨어지지 않는 숫자일 경우, // 양수가 아닌 경우, // 숫자가 아닌 경우 예외를 던진다. return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } } // 뷰 public class InputView { public Integer requestInteger() { try { return Integer.parseInt(Console.readLine()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } 컨트롤러가 실행하는 requestMoney() 메서드는 사용자에게 정수 하나를 입력받는다. 이 때 잘못된 입력(정수가 아닌 입력, 범위를 벗어나는 정수 등)이 들어오면 에러 메시지를 출력하고 재시도한다. 그런데 이 코드 구조는 테스트하기 어려웠다. 잘못된 입력 값을 넣었을 때 예외를 잘 던지는지, 올바른 값을 넣었을 때 반환 값은 일치하는지 검사하고 싶다. 하지만 requesInteger() 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine()을 호출해 입력을 받는다. requestMoney() 메서드 역시 비슷한 방식이고, 심지어 원하는 입력을 받을 때까지 while문을 돌고 있다. 물론 전체 프로젝트를 작성한 뒤에 손으로 직접 테스트는 할 수 있지만, 해당 메서드만 따로 반복적으로 테스트하기 어렵다. @DisplayName("숫자가 아닌 구입 금액을 입력하는 경우") @Test void requestIntegerTest() { InputView inputView = InputView.getInstance(); String input = "\n"; InputStream in = new ByteArrayInputStream(input.getBytes()); System.setIn(in); OutputStream out = new ByteArrayOutputStream(); System.setOut(new PrintStream(out)); assertThatThrownBy(inputView::requestInteger) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("정수를 입력해야 합니다."); Console.close(); } 어쩔 수 없이 3주차 테스트 코드에서는 stdin에 특정 입력을 주고, requestInteger() 메서드를 실행했을 때 stdout에서 원하는 출력이 나오는지 테스트하였다. 피드백 2에서 언급하는, 지양해야 할 UI 로직 테스트라고 볼 수 있겠다. requestMoney() 메서드의 테스트는 작성하지 못했다. 잘못된 입력값만을 주면 반복문을 절대 탈출할 수가 없으므로, 원하는 단위 테스트를 작성할 수가 없었다. 좋은 단위 테스트 4주차 과제에서 어떻게 피드백을 반영해서 더 좋은 테스트를 만들었는지 소개하려고 한다. (이제 와서 3주차 코드를 보면 컨트롤러에서 입력값 유효성을 판단하는 것도 문제 같지만, 이번 포스트에서는 다루지 않으려고 한다.) 메서드 분리하기 이번 과제에는 문자열을 메뉴이름-개수,메뉴이름-개수, … 형식으로 입력받는 부분이 있었다. 이때 입력 형식이 다르거나, 판매하지 않는 메뉴이거나, 개수가 적절하지 않으면 예외를 던지고 다시 입력받아야 했다. 3주차처럼 이 요구사항 전체를 실행하는 메서드 requestMenu()를 만들면 테스트하기 어려울 것이다. 좀 더 작은 단위로 쪼개면서 입출력을 확인하기 쉽도록 바꿔야 한다. 먼저 stdin에서 입력을 받는 부분, 그리고 성공적인 입력을 받을 때까지 반복하는 부분은 테스트하기 어렵다. 이 두 부분을 메서드로 분리하고, 뷰에 위임하였다. public class InputView { // 컨트롤러에서 호출할 함수 public EntireOrder requestOrders() { System.out.println( /* 안내 메시지 출력 */ ); return tryUnitilSuccessOrder(); } private EntireOrder tryUntilSuccessOrder() { try { // 도메인에게 입력받은 문자열을 전달한다. // 도메인에서 유효성 처리를 하고, 적절하지 않으면 에러를 던질 것이다. return MenuReader.readOrders(Console.readLine()); } catch (IllegalArgumentException e) { System.out.println( /* 에러 메시지 출력 */ ); } // 에러가 던져졌으면 다시 한번 실행한다. return tryUntilSuccessOrder(); } } 이 메서드에 대한 테스트는 작성하지 않을 것이다. 내부 로직은 포함하지 않도록 하고, 최소한의 일만 하도록 분리한다. 뷰 부분에 대한 테스트를 굳이 하지 않아도, 유효성을 검증하는 MenuReader.readOrders()가 반복적으로 잘 작동하는지 확인하면 된다. readOrders() 메서드도 작은 단위로 쪼개서 테스트하기 쉽게 만든다. // 입력 문자열: 메뉴이름1-개수1,메뉴이름2-개수2, ... public static EntireOrder readOrders(String line) { // 1. 정규식으로 형식 검증 validatePattern(line); // 2. , 문자 기준으로 split List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); // 6. 중복 메뉴 검증 validateOrdersDistinct(orders); // 7. 전체 주문 개수 검증 (주문이 20개를 넘으면 무효) validateOrdersSize(orders); // 8. Drink 주문만 있으면 무효 validateOrdersWithNonDrink(orders); return new EntireOrder(orders); } // 입력 문자열: 메뉴이름-개수 public static Order readSingleOrder(String line) { String[] tokens = line.split(MENU_SEPARATOR); // 3. - 문자 기준으로 split validateTokenSize(tokens); // 4. 메뉴 이름 검증 Menu menu = readMenuName(tokens[0]); // 5. 개수 검증 Integer count = readCount(tokens[1]); return new Order(menu, count); } 이렇게 개별 기능을 처리하는 메서드를 따로 만들어주고, readOrders() 메서드는 개별 메서드를 실행해주도록 만들었다. 3주차 코드의 경우 모든 검증을 생성자에서 진행했지만, 4주차 코드에서는 validate 메서드를 모두 분리하여 실행을 마친 후 정상적인 입력값만 생성자로 넘겨주도록 변경하였다. 예를 들어 스테이크-1,케이크-2,콜라-3이라는 전체 입력(EntireOrder)을 받아, 각 주문(Order, 스테이크-1)을 파싱하고, 메뉴 이름(Menu, 스테이크)을 파싱하는 부분(4. 메뉴 이름 검증)을 테스트하려고 한다. 이런 식으로 클래스를 구성하고, 주어진 문자열과 일치하는 메뉴가 존재하면 해당하는 Enum을 반환하는 메서드를 만들었다. public static Menu readMenuName(String name) { return Stream.of(Maindish.values(), Dessert.values(), Drink.values()) .flatMap(Stream::of) .filter(i -&gt; i.getName().equals(name)) .findFirst() .orElseThrow(() -&gt; new IllegalArgumentException(MENU_EXCEPTION)); } 이제 이 메서드를 테스트하기는 쉽다. 메뉴이름-숫자 부분에서 자른 메뉴이름 String을 입력으로 넣고, 예상하는 객체가 반환되는지 혹은 적절히 예외를 던지는지 확인하면 된다. readOrders() 메서드의 다른 부분도 같은 방식으로 단위 기능을 만들고, 테스트를 작성하면 된다. 테스트 코드의 중복 제거 테스트 코드도 코드이고, 리팩토링을 통해 개선해야 한다. 특히 반복해서 실행하는 부분의 중복을 제거하라. 3주차 공통 피드백 피드백에서는 중복을 제거하는 방법 중 하나로 ParameterizedTest를 소개했고, 4주차 과제를 진행하면서 이것의 강력함을 맛볼 수 있었다. 3주차 테스트 코드 일부를 소개한다. @DisplayName("중복 번호 확인") @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); } 로또 번호로 사용할 숫자를 6개 입력받는데, 중복 번호를 전달했을 경우 예외를 잘 던지는지 확인하는 테스트이다. 이 코드에서 다른 번호를 테스트하고 싶다면, 똑같은 코드를 중복해서 넣어야 한다. @DisplayName("중복 번호 확인") @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); List&lt;Integer&gt; numbers2 = List.of(6, 7, 10, 10, 10, 10); // numbers3, numbers4, ... assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers2)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); // assert number3, number4, ... } Junit의 PamareterizedTest를 활용하면 코드 중복을 크게 줄일 수 있다. @DisplayName("입력 형식이 다른 주문") @ValueSource(strings = {"양송이수프-1-2", "초코케이크 1", "-1", "5-바비큐립", "제로콜라--10", "제로콜라-", "타파스-1,,,"}) @ParameterizedTest void illegalFormatOrder(String input) { assertThatThrownBy(() -&gt; MenuReader.readSingleOrder(input)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(MENU_EXCEPTION); } 특히 위에서 정규식을 활용해 입력 형식을 검증하는 부분이 있었는데, 정규식을 정확히 작성했는지 검증하기 위해서 많은 입력값을 테스트해봐야 한다. 여기서 중복 코드를 삽입하는 대신, 입력 문자열을 ValueSource로 제공하면 JUnit이 각 파라미터를 자동으로 입력하여 테스트를 실행해준다. MethodSource를 활용하면 출력값 역시 확인할 수 있다. 아래는 readMenuName() 메서드가 맞는 클래스를 반환했는지 확인하는 테스트이다. private static Stream&lt;Arguments&gt; menuSubclassProvider() { return Stream.of( Arguments.of("양송이수프", Appetizer.class, "양송이수프"), Arguments.of("바비큐립", Maindish.class, "바비큐립"), Arguments.of("초코케이크", Dessert.class, "초코케이크"), Arguments.of("샴페인", Drink.class, "샴페인") ); } @DisplayName("정상 메뉴") @MethodSource("menuSubclassProvider") @ParameterizedTest void normalMenu(String input, Class&lt;? extends Menu&gt; expectedClass, String expectedName) { Menu menu = MenuReader.readMenuName(input); assertThat(expectedClass).isEqualTo(menu.getClass()); assertThat(expectedName).isEqualTo(menu.getName()); } 마치며 이렇게 4주차에는 잘 분리된 단위 테스트를 만들면서 과제를 진행했는데, 덕분에 생각지도 못했던 버그를 잡거나 편하게 리팩토링할 수 있었다.'>
+<meta property="og:description" content='공통 피드백 우테코 3주차를 마치고 제공받은 공통 피드백 중, 관심사 분리와 테스트 작성에 관한 내용이 눈에 띄었다. 테스트하기 어려운 것은 객체 분리를 고민하라. UI 로직이 아니라, 비즈니스 로직에 대한 단위 테스트를 작성하라. 테스트 코드도 코드이므로 리팩토링을 통해 개선해야 한다. 돌아보는 3주차 코드 3주차 과제에서 사용자에게 입력 받는 코드는 이렇게 구성했다. // 컨트롤러 public class Controller { Money requestMoney() { while (true) { try { // 1000으로 나누어 떨어지지 않는 숫자일 경우, // 양수가 아닌 경우, // 숫자가 아닌 경우 예외를 던진다. return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } } // 뷰 public class InputView { public Integer requestInteger() { try { return Integer.parseInt(Console.readLine()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } 컨트롤러가 실행하는 requestMoney() 메서드는 사용자에게 정수 하나를 입력받는다. 이 때 잘못된 입력(정수가 아닌 입력, 범위를 벗어나는 정수 등)이 들어오면 에러 메시지를 출력하고 재시도한다. 그런데 이 코드 구조는 테스트하기 어려웠다. 잘못된 입력 값을 넣었을 때 예외를 잘 던지는지, 올바른 값을 넣었을 때 반환 값은 일치하는지 검사하고 싶다. 하지만 requesInteger() 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine()을 호출해 입력을 받는다. requestMoney() 메서드 역시 비슷한 방식이고, 심지어 원하는 입력을 받을 때까지 while문을 돌고 있다. 물론 전체 프로젝트를 작성한 뒤에 손으로 직접 테스트는 할 수 있지만, 해당 메서드만 따로 반복적으로 테스트하기 어렵다. @DisplayName("숫자가 아닌 구입 금액을 입력하는 경우") @Test void requestIntegerTest() { InputView inputView = InputView.getInstance(); String input = "\n"; InputStream in = new ByteArrayInputStream(input.getBytes()); System.setIn(in); OutputStream out = new ByteArrayOutputStream(); System.setOut(new PrintStream(out)); assertThatThrownBy(inputView::requestInteger) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("정수를 입력해야 합니다."); Console.close(); } 어쩔 수 없이 3주차 테스트 코드에서는 stdin에 특정 입력을 주고, requestInteger() 메서드를 실행했을 때 stdout에서 원하는 출력이 나오는지 테스트하였다. 피드백 2에서 언급하는, 지양해야 할 UI 로직 테스트라고 볼 수 있겠다. requestMoney() 메서드의 테스트는 작성하지 못했다. 잘못된 입력값만을 주면 반복문을 절대 탈출할 수가 없으므로, 원하는 단위 테스트를 작성할 수가 없었다. 좋은 단위 테스트 4주차 과제에서 어떻게 피드백을 반영해서 더 좋은 테스트를 만들었는지 소개하려고 한다. (이제 와서 3주차 코드를 보면 컨트롤러에서 입력값 유효성을 판단하는 것도 문제 같지만, 이번 포스트에서는 다루지 않으려고 한다.) 메서드 분리하기 이번 과제에는 문자열을 메뉴이름-개수,메뉴이름-개수, … 형식으로 입력받는 부분이 있었다. 이때 입력 형식이 다르거나, 판매하지 않는 메뉴이거나, 개수가 적절하지 않으면 예외를 던지고 다시 입력받아야 했다. 3주차처럼 이 요구사항 전체를 실행하는 메서드 requestMenu()를 만들면 테스트하기 어려울 것이다. 좀 더 작은 단위로 쪼개면서 입출력을 확인하기 쉽도록 바꿔야 한다. 먼저 stdin에서 입력을 받는 부분, 그리고 성공적인 입력을 받을 때까지 반복하는 부분은 테스트하기 어렵다. 이 두 부분을 메서드로 분리하고, 뷰에 위임하였다. public class InputView { // 컨트롤러에서 호출할 함수 public EntireOrder requestOrders() { System.out.println( /* 안내 메시지 출력 */ ); return tryUnitilSuccessOrder(); } private EntireOrder tryUntilSuccessOrder() { try { // 도메인에게 입력받은 문자열을 전달한다. // 도메인에서 유효성 처리를 하고, 적절하지 않으면 에러를 던질 것이다. return MenuReader.readOrders(Console.readLine()); } catch (IllegalArgumentException e) { System.out.println( /* 에러 메시지 출력 */ ); } // 에러가 던져졌으면 다시 한번 실행한다. return tryUntilSuccessOrder(); } } 이 메서드에 대한 테스트는 작성하지 않을 것이다. 내부 로직은 포함하지 않도록 하고, 최소한의 일만 하도록 분리한다. 뷰 부분에 대한 테스트를 굳이 하지 않아도, 유효성을 검증하는 MenuReader.readOrders()가 반복적으로 잘 작동하는지 확인하면 된다. readOrders() 메서드도 작은 단위로 쪼개서 테스트하기 쉽게 만든다. // 입력 문자열: 메뉴이름1-개수1,메뉴이름2-개수2, ... public static EntireOrder readOrders(String line) { // 1. 정규식으로 형식 검증 validatePattern(line); // 2. , 문자 기준으로 split List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); // 6. 중복 메뉴 검증 validateOrdersDistinct(orders); // 7. 전체 주문 개수 검증 (주문이 20개를 넘으면 무효) validateOrdersSize(orders); // 8. Drink 주문만 있으면 무효 validateOrdersWithNonDrink(orders); return new EntireOrder(orders); } // 입력 문자열: 메뉴이름-개수 public static Order readSingleOrder(String line) { String[] tokens = line.split(MENU_SEPARATOR); // 3. - 문자 기준으로 split validateTokenSize(tokens); // 4. 메뉴 이름 검증 Menu menu = readMenuName(tokens[0]); // 5. 개수 검증 Integer count = readCount(tokens[1]); return new Order(menu, count); } 이렇게 개별 기능을 처리하는 메서드를 따로 만들어주고, readOrders() 메서드는 개별 메서드를 실행해주도록 만들었다. 3주차 코드의 경우 모든 검증을 생성자에서 진행했지만, 4주차 코드에서는 validate 메서드를 모두 분리하여 실행을 마친 후 정상적인 입력값만 생성자로 넘겨주도록 변경하였다. 예를 들어 스테이크-1,케이크-2,콜라-3이라는 전체 입력(EntireOrder)을 받아, 각 주문(Order, 스테이크-1)을 파싱하고, 메뉴 이름(Menu, 스테이크)을 파싱하는 부분(4. 메뉴 이름 검증)을 테스트하려고 한다. 이런 식으로 클래스를 구성하고, 주어진 문자열과 일치하는 메뉴가 존재하면 해당하는 Enum을 반환하는 메서드를 만들었다. public static Menu readMenuName(String name) { return Stream.of(Maindish.values(), Dessert.values(), Drink.values()) .flatMap(Stream::of) .filter(i -&gt; i.getName().equals(name)) .findFirst() .orElseThrow(() -&gt; new IllegalArgumentException(MENU_EXCEPTION)); } 이제 이 메서드를 테스트하기는 쉽다. 메뉴이름-숫자 부분에서 자른 메뉴이름 String을 입력으로 넣고, 예상하는 객체가 반환되는지 혹은 적절히 예외를 던지는지 확인하면 된다. readOrders() 메서드의 다른 부분도 같은 방식으로 단위 기능을 만들고, 테스트를 작성하면 된다. 테스트 코드의 중복 제거 테스트 코드도 코드이고, 리팩토링을 통해 개선해야 한다. 특히 반복해서 실행하는 부분의 중복을 제거하라. 3주차 공통 피드백 피드백에서는 중복을 제거하는 방법 중 하나로 ParameterizedTest를 소개했고, 4주차 과제를 진행하면서 이것의 강력함을 맛볼 수 있었다. 3주차 테스트 코드 일부를 소개한다. @DisplayName("중복 번호 확인") @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); } 로또 번호로 사용할 숫자를 6개 입력받는데, 중복 번호를 전달했을 경우 예외를 잘 던지는지 확인하는 테스트이다. 이 코드에서 다른 번호를 테스트하고 싶다면, 똑같은 코드를 중복해서 넣어야 한다. @DisplayName("중복 번호 확인") @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); List&lt;Integer&gt; numbers2 = List.of(6, 7, 10, 10, 10, 10); // numbers3, numbers4, ... assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers2)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining("중복된 번호가 존재합니다."); // assert number3, number4, ... } Junit의 PamareterizedTest를 활용하면 코드 중복을 크게 줄일 수 있다. @DisplayName("입력 형식이 다른 주문") @ValueSource(strings = {"양송이수프-1-2", "초코케이크 1", "-1", "5-바비큐립", "제로콜라--10", "제로콜라-", "타파스-1,,,"}) @ParameterizedTest void illegalFormatOrder(String input) { assertThatThrownBy(() -&gt; MenuReader.readSingleOrder(input)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(MENU_EXCEPTION); } 특히 위에서 정규식을 활용해 입력 형식을 검증하는 부분이 있었는데, 정규식을 정확히 작성했는지 검증하기 위해서 많은 입력값을 테스트해봐야 한다. 여기서 중복 코드를 삽입하는 대신, 입력 문자열을 ValueSource로 제공하면 JUnit이 각 파라미터를 자동으로 입력하여 테스트를 실행해준다. MethodSource를 활용하면 출력값 역시 확인할 수 있다. 아래는 readMenuName() 메서드가 맞는 클래스를 반환했는지 확인하는 테스트이다. private static Stream&lt;Arguments&gt; menuSubclassProvider() { return Stream.of( Arguments.of("양송이수프", Appetizer.class, "양송이수프"), Arguments.of("바비큐립", Maindish.class, "바비큐립"), Arguments.of("초코케이크", Dessert.class, "초코케이크"), Arguments.of("샴페인", Drink.class, "샴페인") ); } @DisplayName("정상 메뉴") @MethodSource("menuSubclassProvider") @ParameterizedTest void normalMenu(String input, Class&lt;? extends Menu&gt; expectedClass, String expectedName) { Menu menu = MenuReader.readMenuName(input); assertThat(expectedClass).isEqualTo(menu.getClass()); assertThat(expectedName).isEqualTo(menu.getName()); } 마치며 이렇게 4주차에는 잘 분리된 단위 테스트를 만들면서 과제를 진행했는데, 덕분에 생각지도 못했던 버그를 잡거나 편하게 리팩토링할 수 있었다.'>
+<link rel="canonical" href="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html">
+<meta property="og:url" content="https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html">
+<meta property="og:site_name" content="README.md">
+<meta property="og:type" content="article">
+<meta property="article:published_time" content="2023-11-26T00:00:00+00:00">
+<meta name="twitter:card" content="summary">
+<meta property="twitter:title" content="좋은 단위 테스트 작성하기">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"BlogPosting","author":{"@type":"Person","name":"Metishonora"},"dateModified":"2023-11-26T00:00:00+00:00","datePublished":"2023-11-26T00:00:00+00:00","description":"공통 피드백 우테코 3주차를 마치고 제공받은 공통 피드백 중, 관심사 분리와 테스트 작성에 관한 내용이 눈에 띄었다. 테스트하기 어려운 것은 객체 분리를 고민하라. UI 로직이 아니라, 비즈니스 로직에 대한 단위 테스트를 작성하라. 테스트 코드도 코드이므로 리팩토링을 통해 개선해야 한다. 돌아보는 3주차 코드 3주차 과제에서 사용자에게 입력 받는 코드는 이렇게 구성했다. // 컨트롤러 public class Controller { Money requestMoney() { while (true) { try { // 1000으로 나누어 떨어지지 않는 숫자일 경우, // 양수가 아닌 경우, // 숫자가 아닌 경우 예외를 던진다. return new Money(inputView.requestInteger()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } } // 뷰 public class InputView { public Integer requestInteger() { try { return Integer.parseInt(Console.readLine()); } catch (IllegalArgumentException e) { // 에러 메시지 출력 } } } 컨트롤러가 실행하는 requestMoney() 메서드는 사용자에게 정수 하나를 입력받는다. 이 때 잘못된 입력(정수가 아닌 입력, 범위를 벗어나는 정수 등)이 들어오면 에러 메시지를 출력하고 재시도한다. 그런데 이 코드 구조는 테스트하기 어려웠다. 잘못된 입력 값을 넣었을 때 예외를 잘 던지는지, 올바른 값을 넣었을 때 반환 값은 일치하는지 검사하고 싶다. 하지만 requesInteger() 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine()을 호출해 입력을 받는다. requestMoney() 메서드 역시 비슷한 방식이고, 심지어 원하는 입력을 받을 때까지 while문을 돌고 있다. 물론 전체 프로젝트를 작성한 뒤에 손으로 직접 테스트는 할 수 있지만, 해당 메서드만 따로 반복적으로 테스트하기 어렵다. @DisplayName(&quot;숫자가 아닌 구입 금액을 입력하는 경우&quot;) @Test void requestIntegerTest() { InputView inputView = InputView.getInstance(); String input = &quot;\\n&quot;; InputStream in = new ByteArrayInputStream(input.getBytes()); System.setIn(in); OutputStream out = new ByteArrayOutputStream(); System.setOut(new PrintStream(out)); assertThatThrownBy(inputView::requestInteger) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(&quot;정수를 입력해야 합니다.&quot;); Console.close(); } 어쩔 수 없이 3주차 테스트 코드에서는 stdin에 특정 입력을 주고, requestInteger() 메서드를 실행했을 때 stdout에서 원하는 출력이 나오는지 테스트하였다. 피드백 2에서 언급하는, 지양해야 할 UI 로직 테스트라고 볼 수 있겠다. requestMoney() 메서드의 테스트는 작성하지 못했다. 잘못된 입력값만을 주면 반복문을 절대 탈출할 수가 없으므로, 원하는 단위 테스트를 작성할 수가 없었다. 좋은 단위 테스트 4주차 과제에서 어떻게 피드백을 반영해서 더 좋은 테스트를 만들었는지 소개하려고 한다. (이제 와서 3주차 코드를 보면 컨트롤러에서 입력값 유효성을 판단하는 것도 문제 같지만, 이번 포스트에서는 다루지 않으려고 한다.) 메서드 분리하기 이번 과제에는 문자열을 메뉴이름-개수,메뉴이름-개수, … 형식으로 입력받는 부분이 있었다. 이때 입력 형식이 다르거나, 판매하지 않는 메뉴이거나, 개수가 적절하지 않으면 예외를 던지고 다시 입력받아야 했다. 3주차처럼 이 요구사항 전체를 실행하는 메서드 requestMenu()를 만들면 테스트하기 어려울 것이다. 좀 더 작은 단위로 쪼개면서 입출력을 확인하기 쉽도록 바꿔야 한다. 먼저 stdin에서 입력을 받는 부분, 그리고 성공적인 입력을 받을 때까지 반복하는 부분은 테스트하기 어렵다. 이 두 부분을 메서드로 분리하고, 뷰에 위임하였다. public class InputView { // 컨트롤러에서 호출할 함수 public EntireOrder requestOrders() { System.out.println( /* 안내 메시지 출력 */ ); return tryUnitilSuccessOrder(); } private EntireOrder tryUntilSuccessOrder() { try { // 도메인에게 입력받은 문자열을 전달한다. // 도메인에서 유효성 처리를 하고, 적절하지 않으면 에러를 던질 것이다. return MenuReader.readOrders(Console.readLine()); } catch (IllegalArgumentException e) { System.out.println( /* 에러 메시지 출력 */ ); } // 에러가 던져졌으면 다시 한번 실행한다. return tryUntilSuccessOrder(); } } 이 메서드에 대한 테스트는 작성하지 않을 것이다. 내부 로직은 포함하지 않도록 하고, 최소한의 일만 하도록 분리한다. 뷰 부분에 대한 테스트를 굳이 하지 않아도, 유효성을 검증하는 MenuReader.readOrders()가 반복적으로 잘 작동하는지 확인하면 된다. readOrders() 메서드도 작은 단위로 쪼개서 테스트하기 쉽게 만든다. // 입력 문자열: 메뉴이름1-개수1,메뉴이름2-개수2, ... public static EntireOrder readOrders(String line) { // 1. 정규식으로 형식 검증 validatePattern(line); // 2. , 문자 기준으로 split List&lt;Order&gt; orders = Arrays.stream(line.split(ORDER_SEPARATOR)) .map(MenuReader::readSingleOrder) .toList(); // 6. 중복 메뉴 검증 validateOrdersDistinct(orders); // 7. 전체 주문 개수 검증 (주문이 20개를 넘으면 무효) validateOrdersSize(orders); // 8. Drink 주문만 있으면 무효 validateOrdersWithNonDrink(orders); return new EntireOrder(orders); } // 입력 문자열: 메뉴이름-개수 public static Order readSingleOrder(String line) { String[] tokens = line.split(MENU_SEPARATOR); // 3. - 문자 기준으로 split validateTokenSize(tokens); // 4. 메뉴 이름 검증 Menu menu = readMenuName(tokens[0]); // 5. 개수 검증 Integer count = readCount(tokens[1]); return new Order(menu, count); } 이렇게 개별 기능을 처리하는 메서드를 따로 만들어주고, readOrders() 메서드는 개별 메서드를 실행해주도록 만들었다. 3주차 코드의 경우 모든 검증을 생성자에서 진행했지만, 4주차 코드에서는 validate 메서드를 모두 분리하여 실행을 마친 후 정상적인 입력값만 생성자로 넘겨주도록 변경하였다. 예를 들어 스테이크-1,케이크-2,콜라-3이라는 전체 입력(EntireOrder)을 받아, 각 주문(Order, 스테이크-1)을 파싱하고, 메뉴 이름(Menu, 스테이크)을 파싱하는 부분(4. 메뉴 이름 검증)을 테스트하려고 한다. 이런 식으로 클래스를 구성하고, 주어진 문자열과 일치하는 메뉴가 존재하면 해당하는 Enum을 반환하는 메서드를 만들었다. public static Menu readMenuName(String name) { return Stream.of(Maindish.values(), Dessert.values(), Drink.values()) .flatMap(Stream::of) .filter(i -&gt; i.getName().equals(name)) .findFirst() .orElseThrow(() -&gt; new IllegalArgumentException(MENU_EXCEPTION)); } 이제 이 메서드를 테스트하기는 쉽다. 메뉴이름-숫자 부분에서 자른 메뉴이름 String을 입력으로 넣고, 예상하는 객체가 반환되는지 혹은 적절히 예외를 던지는지 확인하면 된다. readOrders() 메서드의 다른 부분도 같은 방식으로 단위 기능을 만들고, 테스트를 작성하면 된다. 테스트 코드의 중복 제거 테스트 코드도 코드이고, 리팩토링을 통해 개선해야 한다. 특히 반복해서 실행하는 부분의 중복을 제거하라. 3주차 공통 피드백 피드백에서는 중복을 제거하는 방법 중 하나로 ParameterizedTest를 소개했고, 4주차 과제를 진행하면서 이것의 강력함을 맛볼 수 있었다. 3주차 테스트 코드 일부를 소개한다. @DisplayName(&quot;중복 번호 확인&quot;) @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(&quot;중복된 번호가 존재합니다.&quot;); } 로또 번호로 사용할 숫자를 6개 입력받는데, 중복 번호를 전달했을 경우 예외를 잘 던지는지 확인하는 테스트이다. 이 코드에서 다른 번호를 테스트하고 싶다면, 똑같은 코드를 중복해서 넣어야 한다. @DisplayName(&quot;중복 번호 확인&quot;) @Test void checkDuplicatedNumbers() { List&lt;Integer&gt; numbers = List.of(1, 1, 2, 3, 4, 5); List&lt;Integer&gt; numbers2 = List.of(6, 7, 10, 10, 10, 10); // numbers3, numbers4, ... assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(&quot;중복된 번호가 존재합니다.&quot;); assertThatThrownBy(() -&gt; LottoGenerator.generateAnswerLotto(numbers2)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(&quot;중복된 번호가 존재합니다.&quot;); // assert number3, number4, ... } Junit의 PamareterizedTest를 활용하면 코드 중복을 크게 줄일 수 있다. @DisplayName(&quot;입력 형식이 다른 주문&quot;) @ValueSource(strings = {&quot;양송이수프-1-2&quot;, &quot;초코케이크 1&quot;, &quot;-1&quot;, &quot;5-바비큐립&quot;, &quot;제로콜라--10&quot;, &quot;제로콜라-&quot;, &quot;타파스-1,,,&quot;}) @ParameterizedTest void illegalFormatOrder(String input) { assertThatThrownBy(() -&gt; MenuReader.readSingleOrder(input)) .isInstanceOf(IllegalArgumentException.class) .hasMessageContaining(MENU_EXCEPTION); } 특히 위에서 정규식을 활용해 입력 형식을 검증하는 부분이 있었는데, 정규식을 정확히 작성했는지 검증하기 위해서 많은 입력값을 테스트해봐야 한다. 여기서 중복 코드를 삽입하는 대신, 입력 문자열을 ValueSource로 제공하면 JUnit이 각 파라미터를 자동으로 입력하여 테스트를 실행해준다. MethodSource를 활용하면 출력값 역시 확인할 수 있다. 아래는 readMenuName() 메서드가 맞는 클래스를 반환했는지 확인하는 테스트이다. private static Stream&lt;Arguments&gt; menuSubclassProvider() { return Stream.of( Arguments.of(&quot;양송이수프&quot;, Appetizer.class, &quot;양송이수프&quot;), Arguments.of(&quot;바비큐립&quot;, Maindish.class, &quot;바비큐립&quot;), Arguments.of(&quot;초코케이크&quot;, Dessert.class, &quot;초코케이크&quot;), Arguments.of(&quot;샴페인&quot;, Drink.class, &quot;샴페인&quot;) ); } @DisplayName(&quot;정상 메뉴&quot;) @MethodSource(&quot;menuSubclassProvider&quot;) @ParameterizedTest void normalMenu(String input, Class&lt;? extends Menu&gt; expectedClass, String expectedName) { Menu menu = MenuReader.readMenuName(input); assertThat(expectedClass).isEqualTo(menu.getClass()); assertThat(expectedName).isEqualTo(menu.getName()); } 마치며 이렇게 4주차에는 잘 분리된 단위 테스트를 만들면서 과제를 진행했는데, 덕분에 생각지도 못했던 버그를 잡거나 편하게 리팩토링할 수 있었다.","headline":"좋은 단위 테스트 작성하기","mainEntityOfPage":{"@type":"WebPage","@id":"https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html"},"url":"https://metishonora.github.io/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/26/woowacourse-pre4-unit-test.html"}</script>
+<!-- End Jekyll SEO tag -->
+<link rel="icon" href="/assets/favicon.ico">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/typeface-noto-sans@0.0.72/index.min.css">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <script src="/assets/js/main.js"></script><link type="application/atom+xml" rel="alternate" href="https://metishonora.github.io/feed.xml" title="README.md">
+<!-- Google tag (gtag.js) -->
+<script>
+  function initGoogleAnalytics() {
+    var doNotTrack = (window.doNotTrack === "1" || navigator.doNotTrack === "1" ||
+      navigator.doNotTrack === "yes" || navigator.msDoNotTrack === "1");
+    var enableDNT = "true" == "true";
+
+    if (!enableDNT || !doNotTrack) {
+      var measurementId = 'G-3ZE0SQ8DC0';
+
+      (function(src) {
+        var tag = document.createElement('script');
+        tag.src = src;
+        tag.async = true;
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+      })('https://www.googletagmanager.com/gtag/js?id=' + measurementId);
+
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', measurementId);
+    }
+  }
+  window.addEventListener("load", initGoogleAnalytics);
+</script>
+
+<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/default.min.css">
+<script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js"></script>
+<!-- and it's easy to individually load additional languages -->
+<script charset="UTF-8" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/languages/go.min.js"></script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+// Init highlight js
+document.addEventListener('DOMContentLoaded', function(event) {
+  var els = document.querySelectorAll('pre code')
+
+  function addLangData(block) {
+    var outer = block.parentElement.parentElement.parentElement;
+    var lang = block.getAttribute('data-lang');
+    for (var i = 0; i < outer.classList.length; i++) {
+      var cls = outer.classList[i];
+      if (cls.startsWith('language-')) {
+        lang = cls;
+        break;
+      }
+    }
+    if (!lang) {
+      cls = block.getAttribute('class');
+      lang = cls ? cls.replace('hljs ', '') : '';
+    }
+    if (lang.startsWith('language-')) {
+      lang = lang.substr(9);
+    }
+    block.setAttribute('class', 'hljs ' + lang);
+    block.parentNode.setAttribute('data-lang', lang);
+  }
+
+  function addBadge(block) {
+    var enabled = ('true' || 'true').toLowerCase();
+    if (enabled == 'true') {
+      var pre = block.parentElement;
+      pre.classList.add('badge');
+    }
+  }
+
+  function handle(block) {
+    addLangData(block);
+    addBadge(block)
+    hljs.highlightBlock(block);
+  }
+
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    handle(el);
+  }
+});
+</script>
+
+<style>
+  /* code language badge */
+  pre.badge::before {
+    content: attr(data-lang);
+    color: #fff;
+    background-color: #ff4e00;
+    padding: 0 .5em;
+    border-radius: 0 2px;
+    text-transform: uppercase;
+    text-align: center;
+    min-width: 32px;
+    display: inline-block;
+    position: absolute;
+    right: 0;
+  }
+
+  /* fix wrong badge display for firefox browser */
+  code > table pre::before {
+    display: none;
+  }
+</style>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/photoswipe.css" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/photoswipe/4.1.3/default-skin/default-skin.css" rel="stylesheet">
+<style>
+  .pswp .pswp__container .pswp__img {
+    background-color: white;
+  }
+</style>
+
+<script>
+  function initPhotoSwipe() {
+    var mainEl = document.querySelector("section.main");
+
+    var imgEls = mainEl.querySelectorAll("img:not(.emoji)");
+    imgEls.forEach((imgEl) => {
+      imgEl.outerHTML = `
+    <a class="photo-swipe"
+      href="${imgEl.src}"
+      data-width="${imgEl.getAttribute("width") || imgEl.width * 2}"
+      data-height="${imgEl.getAttribute("height") || imgEl.height * 2}"
+      data-caption="${imgEl.getAttribute("caption") || imgEl.alt}"
+      target="_blank">
+      ${imgEl.outerHTML}
+    </a>`;
+    });
+
+    // Init empty gallery array
+    var container = [];
+
+    // Loop over gallery items and push it to the array
+    var linkEls = mainEl.querySelectorAll("a.photo-swipe");
+    linkEls.forEach((link) => {
+      var item = {
+        src: link.getAttribute("href"),
+        w: link.dataset.width,
+        h: link.dataset.height,
+        title: link.dataset.caption || "",
+      };
+      container.push(item);
+    });
+
+    // Define click event on gallery item
+    linkEls.forEach((link, index) => {
+      link.addEventListener("click", (event) => {
+        // Prevent location change
+        event.preventDefault();
+
+        // Define object and gallery options
+        var pswp = document.querySelector(".pswp");
+
+        var zoomLevel = 1;
+
+        // Define object and gallery options
+        var options = {
+          index: index,
+          bgOpacity: 0.85,
+          showHideOpacity: true,
+          closeOnScroll: true,
+          maxSpreadZoom: 1,
+          getDoubleTapZoom: (isMouseClick, item) => {
+            if (item.detail) {
+              zoomLevel += item.detail.origEvent.shiftKey ? -1 : 1;
+              item.detail = undefined;
+            } else {
+              zoomLevel = zoomLevel === 1 ? 2 : 1;
+            }
+            if (zoomLevel <= 1) {
+              zoomLevel = 1;
+              setTimeout(() => pswp.classList.remove("pswp--zoomed-in"), 0);
+            }
+            return item.initialZoomLevel * zoomLevel;
+          },
+        };
+
+        // Initialize PhotoSwipe
+        var gallery = new PhotoSwipe(
+          pswp,
+          PhotoSwipeUI_Default,
+          container,
+          options
+        );
+
+        gallery.init();
+
+        // Custom zoom event
+        gallery.container.addEventListener("pswpTap", (e) => {
+          gallery.currItem.detail = e.detail;
+        });
+      });
+    });
+  }
+
+  window.addEventListener("load", initPhotoSwipe);
+</script>
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+</head>
+<body>
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+  <!-- Background of PhotoSwipe.
+           It's a separate element as animating opacity is faster than rgba(). -->
+  <div class="pswp__bg"></div>
+  <!-- Slides wrapper with overflow:hidden. -->
+  <div class="pswp__scroll-wrap">
+    <!-- Container that holds slides.
+              PhotoSwipe keeps only 3 of them in the DOM to save memory.
+              Don't modify these 3 pswp__item elements, data is added later on. -->
+    <div class="pswp__container">
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+      <div class="pswp__item"></div>
+    </div>
+    <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+    <div class="pswp__ui pswp__ui--hidden">
+      <div class="pswp__top-bar">
+        <!--  Controls are self-explanatory. Order can be changed. -->
+        <div class="pswp__counter"></div>
+        <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+        <button class="pswp__button pswp__button--share" title="Share"></button>
+        <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+        <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+        <!-- element will get class pswp__preloader--active when preloader is running -->
+        <div class="pswp__preloader">
+          <div class="pswp__preloader__icn">
+            <div class="pswp__preloader__cut">
+              <div class="pswp__preloader__donut"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+        <div class="pswp__share-tooltip"></div>
+      </div>
+      <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)"></button>
+      <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)"></button>
+      <div class="pswp__caption">
+        <div class="pswp__caption__center"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<header class="site-header " role="banner">
+
+  <div class="wrapper">
+    <div class="site-header-inner">
+<span class="site-brand"><a class="site-brand-inner" rel="author" href="/">
+  <img class="site-favicon" title="README.md" src="/assets/favicon.ico" onerror="this.style.display='none'">
+  README.md
+</a>
+</span><nav class="site-nav">
+          <input type="checkbox" id="nav-trigger" class="nav-trigger">
+          <label for="nav-trigger">
+            <span class="menu-icon">
+              <svg viewbox="0 0 18 15" width="18px" height="15px">
+                <path d="M18,1.484c0,0.82-0.665,1.484-1.484,1.484H1.484C0.665,2.969,0,2.304,0,1.484l0,0C0,0.665,0.665,0,1.484,0 h15.032C17.335,0,18,0.665,18,1.484L18,1.484z M18,7.516C18,8.335,17.335,9,16.516,9H1.484C0.665,9,0,8.335,0,7.516l0,0 c0-0.82,0.665-1.484,1.484-1.484h15.032C17.335,6.031,18,6.696,18,7.516L18,7.516z M18,13.516C18,14.335,17.335,15,16.516,15H1.484 C0.665,15,0,14.335,0,13.516l0,0c0-0.82,0.665-1.483,1.484-1.483h15.032C17.335,12.031,18,12.695,18,13.516L18,13.516z"></path>
+              </svg>
+            </span>
+          </label>
+
+          <div class="trigger">
+<a class="page-link" href="/about.html">GITHUB</a><a class="page-link" href="/archives.html">ARCHIVES</a><a class="page-link" href="/categories.html">CATEGORIES</a><a class="page-link" href="/tags.html">TAGS</a><a class="page-link" href="/index.html">MAIN</a>
+
+
+
+
+
+
+
+
+
+<!--
+              <span class="page-link">
+
+
+
+<div id="google_translate_element" style="display: none;">
+</div>
+
+<span class="ct-language">
+  <ul class="list-unstyled ct-language-dropdown">
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="en">
+          
+          <img src="https://cdn.countryflags.com/thumbs/united-states-of-america/flag-400.png" title="English">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="fr">
+          
+          <img src="https://cdn.countryflags.com/thumbs/france/flag-400.png" title="French">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="zh-CN">
+          
+          <img src="https://cdn.countryflags.com/thumbs/china/flag-400.png" title="Chinese(Simple)">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ja">
+          
+          <img src="https://cdn.countryflags.com/thumbs/japan/flag-400.png" title="Japanese">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ko">
+          
+          <img src="https://cdn.countryflags.com/thumbs/south-korea/flag-400.png" title="Korean">
+          
+        </a>
+      </li>
+    
+      <li>
+        <a href="#" class="lang-select" data-lang="ru">
+          
+          <img src="https://cdn.countryflags.com/thumbs/russia/flag-400.png" title="Russian">
+          
+        </a>
+      </li>
+    
+  </ul>
+</span>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'ko',
+    autoDisplay: false,
+    layout: google.translate.TranslateElement.InlineLayout.VERTICAL
+  }, 'google_translate_element');
+
+  // Links to cross-origin destinations are unsafe
+  var gll = document.getElementsByClassName('goog-logo-link')[0];
+  if (gll) {
+    gll.setAttribute('rel', 'noopener');
+  }
+
+  function restoreLang() {
+    var iframe = document.getElementsByClassName('goog-te-banner-frame')[0];
+    if (!iframe) return;
+
+    var innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+    var restore_el = innerDoc.getElementsByTagName("button");
+
+    for (var i = 0; i < restore_el.length; i++) {
+      if (restore_el[i].id.indexOf("restore") >= 0) {
+        restore_el[i].click();
+        var close_el = innerDoc.getElementsByClassName("goog-close-link");
+        close_el[0].click();
+        return;
+      }
+    }
+  }
+
+  function triggerHtmlEvent(element, eventName) {
+    var event;
+    if (document.createEvent) {
+      event = document.createEvent('HTMLEvents');
+      event.initEvent(eventName, true, true);
+      element.dispatchEvent(event);
+    } else {
+      event = document.createEventObject();
+      event.eventType = eventName;
+      element.fireEvent('on' + event.eventType, event);
+    }
+  }
+
+  var googleCombo = document.querySelector("select.goog-te-combo");
+  var langSelect = document.querySelector('.ct-language');
+  langSelect.addEventListener('click', function(event) {
+    if (!event.target) {
+      return;
+    }
+
+    var selected = document.querySelector('.ct-language .ct-language-selected');
+    if (selected) {
+      selected.classList.remove('ct-language-selected');
+    }
+
+    var target = event.target;
+    while (target && target !== langSelect ) {
+      if (target.matches('.lang-select')) {
+        break;
+      }
+      target = target.parentElement;
+    }
+
+    if (target && target.matches('.lang-select')) {
+      var lang = target.getAttribute('data-lang');
+      if (googleCombo.value == lang) {
+        restoreLang();
+      } else {
+        target.parentElement.classList.add('ct-language-selected');
+        googleCombo.value = lang;
+        triggerHtmlEvent(googleCombo, 'change');
+      }
+    }
+
+    event.preventDefault();
+  });
+}
+</script>
+
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+</span>
+              -->
+</div>
+        </nav>
+</div>
+  </div>
+</header>
+
+<script>
+  function initHeader() {
+    var lastScrollY = getScrollPos().y;
+    var documentElement = document.documentElement;
+
+    function storeScrollData() {
+      var y = getScrollPos().y;var scrollStatus = "";
+
+      if (y <= 0) {
+        scrollStatus = "top";
+      } else if ((window.innerHeight + y) >= document.body.offsetHeight) {
+        scrollStatus = "bottom";
+      } else {
+        var isScrollDown = (y - lastScrollY > 0) ? true : false;
+        scrollStatus = isScrollDown ? "down" : "up";
+      }
+
+      lastScrollY = y;
+      documentElement.setAttribute("data-scroll-status", scrollStatus);
+    }
+
+    window.addEventListener('scroll', function(e) {
+      storeScrollData();
+    });
+
+    storeScrollData();
+  }
+  document.addEventListener('DOMContentLoaded', initHeader);
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<script>
+  function hashLocate(hashValue) {
+    hashValue = hashValue.replace(/^.*#h-/, '');
+    hashValue = decodeURIComponent(hashValue);
+    var element = document.getElementById(hashValue);
+
+    if (!element) {
+      return;
+    }
+
+    var header = document.querySelector('header.site-header');
+    var headerRect = header.getBoundingClientRect();
+    var headerTop = Math.floor(headerRect.top);
+    var headerHeight = Math.floor(headerRect.height);
+    var scrollPos = getScrollPos();
+    var offsetY = element.offsetTop - (headerTop + headerHeight + 20);
+
+    if (offsetY == scrollPos.y) {
+      return;
+    }
+
+    if (headerTop == 0  && offsetY > scrollPos.y) {
+      offsetY += headerHeight + 2;
+    } else if (headerTop < 0  && offsetY < scrollPos.y) {
+      offsetY -= headerHeight - 2;
+    }
+
+    smoothScrollTo(offsetY);
+  }
+
+  // The first event occurred
+  window.addEventListener('load', function(event) {
+    if (window.location.hash) {
+      hashLocate(window.location.hash);
+    }
+  });
+
+  // The first event occurred
+  window.addEventListener('click', function(event) {
+    if (event.target.tagName.toLowerCase() == 'a') {
+      hashLocate(event.target.getAttribute('href'));
+    }
+  });
+</script>
+<div class="theme-toggle">
+  <input type="checkbox" id="theme-switch">
+  <label for="theme-switch">
+    <div class="toggle"></div>
+    <div class="names">
+      <p class="light">Light</p>
+      <p class="dark">Dark</p>
+    </div>
+  </label>
+</div>
+
+
+
+
+<script>
+  (function() {
+    var sw = document.getElementById('theme-switch');
+    var html = document.getElementsByTagName('html')[0];
+    var nightModeOption = ('auto' || 'auto').toLowerCase();
+    var storage = nightModeOption === 'manual'
+        ? localStorage
+        : sessionStorage;
+    var themeData = loadThemeData();
+
+    function saveThemeData(data) {
+      storage.setItem('theme', JSON.stringify(data));
+    }
+
+    function loadThemeData() {
+      var data = storage.getItem('theme');
+      try {
+        data = JSON.parse(data ? data : '');
+      } catch(e) {
+        data = { nightShift: undefined, autoToggleAt: 0 };
+        saveThemeData(data);
+      }
+      return data;
+    }
+
+    function handleThemeToggle(nightShift) {
+      themeData.nightShift = nightShift;
+      saveThemeData(themeData);
+      html.dataset.theme = nightShift ? 'dark' : 'light';
+      setTimeout(function() {
+        sw.checked = nightShift ? true : false;
+      }, 50);
+    }
+
+    function autoThemeToggle() {
+      // Next time point of theme toggle
+      var now = new Date();
+      var toggleAt = new Date();
+      var hours = now.getHours();
+      var nightShift = hours >= 19 || hours <=7;
+
+      if (nightShift) {
+        if (hours > 7) {
+          toggleAt.setDate(toggleAt.getDate() + 1);
+        }
+        toggleAt.setHours(7);
+      } else {
+        toggleAt.setHours(19);
+      }
+
+      toggleAt.setMinutes(0);
+      toggleAt.setSeconds(0);
+      toggleAt.setMilliseconds(0)
+
+      var delay = toggleAt.getTime() - now.getTime();
+
+      // auto toggle theme mode
+      setTimeout(function() {
+        handleThemeToggle(!nightShift);
+      }, delay);
+
+      return {
+        nightShift: nightShift,
+        toggleAt: toggleAt.getTime()
+      };
+    }
+
+    // Listen the theme toggle event
+    sw.addEventListener('change', function(event) {
+      handleThemeToggle(event.target.checked);
+    });
+
+    if (nightModeOption == 'auto') {
+      var data = autoThemeToggle();
+
+      // Toggle theme by local setting
+      if (data.toggleAt > themeData.autoToggleAt) {
+        themeData.autoToggleAt = data.toggleAt;
+        handleThemeToggle(data.nightShift);
+      } else {
+        handleThemeToggle(themeData.nightShift);
+      }
+    } else if (nightModeOption == 'manual') {
+      handleThemeToggle(themeData.nightShift);
+    } else {
+      var nightShift = themeData.nightShift;
+      if (nightShift === undefined) {
+        nightShift = nightModeOption === 'on';
+      }
+      handleThemeToggle(nightShift);
+    }
+  })();
+</script>
+<div id="click-to-top" class="click-to-top">
+  <i class="fa fa-arrow-up"></i>
+</div>
+<script>
+  (function () {
+    const clickToTop = document.getElementById('click-to-top');
+    window.addEventListener('scroll', () => {
+      if (window.scrollY > 100) {
+        clickToTop.classList.add('show')
+      }else {
+        clickToTop.classList.remove('show')
+      }
+    });
+    clickToTop.addEventListener('click', () => {
+      window.smoothScrollTo(0);
+    });
+  })();
+</script>
+<main class="page-content" aria-label="Content">
+      <div class="wrapper">
+        <div class="framework">
+  <section class="main">
+
+     <div class="post">
+  <section>
+
+
+
+
+
+
+
+
+
+<header class="post-header">
+  <h1 class="post-title p-name" itemprop="name headline">좋은 단위 테스트 작성하기</h1>
+  <h2 class="post-subtitle">조금 늦은, 우테코 6기 프리코스 4주차 후기</h2>
+
+  <p class="post-meta">
+    <time class="dt-published" datetime="2023-11-26T00:00:00+00:00" itemprop="datePublished"><i class="fa fa-calendar"></i> 2023-11-26
+    </time>
+
+    
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <span class="post-reading-time left-vsplit"><i class="fa fa-clock-o"></i> about 12 mins to read</span>
+  </p>
+<div class="post-tags">
+<a class="post-tag" href="/tags.html#%EC%9A%B0%ED%85%8C%EC%BD%94%ED%94%84%EB%A6%AC%EC%BD%94%EC%8A%A4">#우테코프리코스</a><a class="post-tag" href="/tags.html#%ED%85%8C%EC%8A%A4%ED%8A%B8">#테스트</a>
+</div></header>
+<article class="post h-entry" itemscope itemtype="http://schema.org/BlogPosting">
+
+    <div class="post-content e-content" itemprop="articleBody">
+
+      <h2 id="공통-피드백">공통 피드백</h2>
+<p>우테코 3주차를 마치고 제공받은 공통 피드백 중, 관심사 분리와 테스트 작성에 관한 내용이
+눈에 띄었다.</p>
+
+<blockquote>
+  <ol>
+    <li>테스트하기 어려운 것은 객체 분리를 고민하라.</li>
+    <li>UI 로직이 아니라, 비즈니스 로직에 대한 단위 테스트를 작성하라.</li>
+    <li>테스트 코드도 코드이므로 리팩토링을 통해 개선해야 한다.</li>
+  </ol>
+</blockquote>
+
+<h2 id="돌아보는-3주차-코드">돌아보는 3주차 코드</h2>
+<p>3주차 과제에서 사용자에게 입력 받는 코드는 이렇게 구성했다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 컨트롤러</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">Controller</span> <span class="o">{</span>
+	<span class="nc">Money</span> <span class="nf">requestMoney</span><span class="o">()</span> <span class="o">{</span>
+		<span class="k">while</span> <span class="o">(</span><span class="kc">true</span><span class="o">)</span> <span class="o">{</span>
+			<span class="k">try</span> <span class="o">{</span>
+				<span class="c1">// 1000으로 나누어 떨어지지 않는 숫자일 경우,</span>
+				<span class="c1">// 양수가 아닌 경우,</span>
+				<span class="c1">// 숫자가 아닌 경우 예외를 던진다.</span>
+				<span class="k">return</span> <span class="k">new</span> <span class="nf">Money</span><span class="o">(</span><span class="n">inputView</span><span class="o">.</span><span class="na">requestInteger</span><span class="o">());</span>
+			<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+				<span class="c1">// 에러 메시지 출력</span>
+			<span class="o">}</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+
+<span class="c1">// 뷰</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">InputView</span> <span class="o">{</span>
+	<span class="kd">public</span> <span class="nc">Integer</span> <span class="nf">requestInteger</span><span class="o">()</span> <span class="o">{</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="k">return</span> <span class="nc">Integer</span><span class="o">.</span><span class="na">parseInt</span><span class="o">(</span><span class="nc">Console</span><span class="o">.</span><span class="na">readLine</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="c1">// 에러 메시지 출력</span>
+		<span class="o">}</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>컨트롤러가 실행하는 <em>requestMoney()</em> 메서드는 사용자에게 정수 하나를 입력받는다.
+이 때 잘못된 입력(정수가 아닌 입력, 범위를 벗어나는 정수 등)이 들어오면 에러 메시지를 출력하고 재시도한다.</p>
+
+<p>그런데 이 코드 구조는 테스트하기 어려웠다.
+<img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoic2VxdWVuY2VEaWFncmFtXG5wYXJ0aWNpcGFudCBEb21haW5cbnBhcnRpY2lwYW50IENvbnRyb2xsZXJcbnBhcnRpY2lwYW50IFZpZXdcbiUlLVxuQ29udHJvbGxlci0pVmlldzog7KCV7IiYIOyalOyyrVxuVmlldy0pQ29udHJvbGxlcjog7J6F66Cl6rCSIOqygOymnSDtm4QsIOygleyImCDqsJLrp4wg7KCE64usXG5Db250cm9sbGVyLSlEb21haW46IOyeheugpeqwkiDqsoDspp0g7ZuELCDsmKzrsJTrpbgg6rCS66eMIOyghOuLrCIsIm1lcm1haWQiOm51bGx9">
+잘못된 입력 값을 넣었을 때 예외를 잘 던지는지, 올바른 값을 넣었을 때 반환 값은 일치하는지 검사하고 싶다.
+하지만 <em>requesInteger()</em> 메서드는 입력값을 파라미터로 받지 않고 내부적으로 Console.readLine()을 호출해 입력을 받는다.</p>
+
+<p>requestMoney() 메서드 역시 비슷한 방식이고, 심지어 원하는 입력을 받을 때까지 while문을 돌고 있다.</p>
+
+<p>물론 전체 프로젝트를 작성한 뒤에 손으로 직접 테스트는 할 수 있지만,
+해당 메서드만 따로 반복적으로 테스트하기 어렵다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"숫자가 아닌 구입 금액을 입력하는 경우"</span><span class="o">)</span>
+<span class="nd">@Test</span>
+<span class="kt">void</span> <span class="nf">requestIntegerTest</span><span class="o">()</span> <span class="o">{</span>
+	<span class="nc">InputView</span> <span class="n">inputView</span> <span class="o">=</span> <span class="nc">InputView</span><span class="o">.</span><span class="na">getInstance</span><span class="o">();</span>
+	<span class="nc">String</span> <span class="n">input</span> <span class="o">=</span> <span class="s">"\n"</span><span class="o">;</span>
+	<span class="nc">InputStream</span> <span class="n">in</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ByteArrayInputStream</span><span class="o">(</span><span class="n">input</span><span class="o">.</span><span class="na">getBytes</span><span class="o">());</span>
+	<span class="nc">System</span><span class="o">.</span><span class="na">setIn</span><span class="o">(</span><span class="n">in</span><span class="o">);</span>
+	<span class="nc">OutputStream</span> <span class="n">out</span> <span class="o">=</span> <span class="k">new</span> <span class="nc">ByteArrayOutputStream</span><span class="o">();</span>
+	<span class="nc">System</span><span class="o">.</span><span class="na">setOut</span><span class="o">(</span><span class="k">new</span> <span class="nc">PrintStream</span><span class="o">(</span><span class="n">out</span><span class="o">));</span>
+
+	<span class="n">assertThatThrownBy</span><span class="o">(</span><span class="nl">inputView:</span><span class="o">:</span><span class="n">requestInteger</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"정수를 입력해야 합니다."</span><span class="o">);</span>
+
+	<span class="nc">Console</span><span class="o">.</span><span class="na">close</span><span class="o">();</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>어쩔 수 없이 3주차 테스트 코드에서는 stdin에 특정 입력을 주고, requestInteger() 메서드를 실행했을 때
+stdout에서 원하는 출력이 나오는지 테스트하였다.
+피드백 2에서 언급하는, <strong>지양해야 할</strong> UI 로직 테스트라고 볼 수 있겠다.</p>
+
+<p>requestMoney() 메서드의 테스트는 작성하지 못했다. 잘못된 입력값만을 주면 반복문을 절대
+탈출할 수가 없으므로, 원하는 단위 테스트를 작성할 수가 없었다.</p>
+
+<h2 id="좋은-단위-테스트">좋은 단위 테스트</h2>
+<p>4주차 과제에서 어떻게 피드백을 반영해서 더 좋은 테스트를 만들었는지 소개하려고 한다.
+(이제 와서 3주차 코드를 보면 컨트롤러에서 입력값 유효성을 판단하는 것도 문제 같지만,
+이번 포스트에서는 다루지 않으려고 한다.)</p>
+
+<h3 id="메서드-분리하기">메서드 분리하기</h3>
+<p>이번 과제에는 문자열을 <em>메뉴이름-개수,메뉴이름-개수, …</em> 형식으로 입력받는 부분이 있었다.
+이때 입력 형식이 다르거나, 판매하지 않는 메뉴이거나, 개수가 적절하지 않으면 예외를 던지고 다시 입력받아야 했다.</p>
+
+<p>3주차처럼 이 요구사항 전체를 실행하는 메서드 <em>requestMenu()</em>를 만들면 테스트하기 어려울 것이다.
+좀 더 작은 단위로 쪼개면서 입출력을 확인하기 쉽도록 바꿔야 한다.</p>
+
+<p>먼저 stdin에서 입력을 받는 부분,
+그리고 성공적인 입력을 받을 때까지 반복하는 부분은 테스트하기 어렵다.
+이 두 부분을 메서드로 분리하고, 뷰에 위임하였다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">class</span> <span class="nc">InputView</span> <span class="o">{</span>
+	<span class="c1">// 컨트롤러에서 호출할 함수</span>
+	<span class="kd">public</span> <span class="nc">EntireOrder</span> <span class="nf">requestOrders</span><span class="o">()</span> <span class="o">{</span>
+		<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="cm">/* 안내 메시지 출력 */</span> <span class="o">);</span>
+		<span class="k">return</span> <span class="nf">tryUnitilSuccessOrder</span><span class="o">();</span>
+	<span class="o">}</span>
+
+	<span class="kd">private</span> <span class="nc">EntireOrder</span> <span class="nf">tryUntilSuccessOrder</span><span class="o">()</span> <span class="o">{</span>
+		<span class="k">try</span> <span class="o">{</span>
+			<span class="c1">// 도메인에게 입력받은 문자열을 전달한다.</span>
+			<span class="c1">// 도메인에서 유효성 처리를 하고, 적절하지 않으면 에러를 던질 것이다.</span>
+			<span class="k">return</span> <span class="nc">MenuReader</span><span class="o">.</span><span class="na">readOrders</span><span class="o">(</span><span class="nc">Console</span><span class="o">.</span><span class="na">readLine</span><span class="o">());</span>
+		<span class="o">}</span> <span class="k">catch</span> <span class="o">(</span><span class="nc">IllegalArgumentException</span> <span class="n">e</span><span class="o">)</span> <span class="o">{</span>
+			<span class="nc">System</span><span class="o">.</span><span class="na">out</span><span class="o">.</span><span class="na">println</span><span class="o">(</span> <span class="cm">/* 에러 메시지 출력 */</span> <span class="o">);</span>
+		<span class="o">}</span>
+		<span class="c1">// 에러가 던져졌으면 다시 한번 실행한다.</span>
+		<span class="k">return</span> <span class="nf">tryUntilSuccessOrder</span><span class="o">();</span>
+	<span class="o">}</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>이 메서드에 대한 테스트는 작성하지 않을 것이다.
+내부 로직은 포함하지 않도록 하고, 최소한의 일만 하도록 분리한다.</p>
+
+<p>뷰 부분에 대한 테스트를 굳이 하지 않아도, 유효성을 검증하는 <em>MenuReader.readOrders()</em>가
+반복적으로 잘 작동하는지 확인하면 된다.</p>
+
+<p>readOrders() 메서드도 작은 단위로 쪼개서 테스트하기 쉽게 만든다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1">// 입력 문자열: 메뉴이름1-개수1,메뉴이름2-개수2, ...</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">EntireOrder</span> <span class="nf">readOrders</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="c1">// 1. 정규식으로 형식 검증</span>
+	<span class="n">validatePattern</span><span class="o">(</span><span class="n">line</span><span class="o">);</span>
+
+	<span class="c1">// 2. , 문자 기준으로 split</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Order</span><span class="o">&gt;</span> <span class="n">orders</span> <span class="o">=</span> <span class="nc">Arrays</span><span class="o">.</span><span class="na">stream</span><span class="o">(</span><span class="n">line</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="no">ORDER_SEPARATOR</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">map</span><span class="o">(</span><span class="nl">MenuReader:</span><span class="o">:</span><span class="n">readSingleOrder</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">toList</span><span class="o">();</span>
+
+	<span class="c1">// 6. 중복 메뉴 검증</span>
+	<span class="n">validateOrdersDistinct</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="c1">// 7. 전체 주문 개수 검증 (주문이 20개를 넘으면 무효)</span>
+	<span class="n">validateOrdersSize</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+	<span class="c1">// 8. Drink 주문만 있으면 무효</span>
+	<span class="n">validateOrdersWithNonDrink</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+
+	<span class="k">return</span> <span class="k">new</span> <span class="nf">EntireOrder</span><span class="o">(</span><span class="n">orders</span><span class="o">);</span>
+<span class="o">}</span>
+
+<span class="c1">// 입력 문자열: 메뉴이름-개수</span>
+<span class="kd">public</span> <span class="kd">static</span> <span class="nc">Order</span> <span class="nf">readSingleOrder</span><span class="o">(</span><span class="nc">String</span> <span class="n">line</span><span class="o">)</span> <span class="o">{</span>
+	<span class="nc">String</span><span class="o">[]</span> <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="na">split</span><span class="o">(</span><span class="no">MENU_SEPARATOR</span><span class="o">);</span>
+	<span class="c1">// 3. - 문자 기준으로 split</span>
+	<span class="n">validateTokenSize</span><span class="o">(</span><span class="n">tokens</span><span class="o">);</span>
+
+	<span class="c1">// 4. 메뉴 이름 검증</span>
+	<span class="nc">Menu</span> <span class="n">menu</span> <span class="o">=</span> <span class="n">readMenuName</span><span class="o">(</span><span class="n">tokens</span><span class="o">[</span><span class="mi">0</span><span class="o">]);</span>
+	<span class="c1">// 5. 개수 검증</span>
+	<span class="nc">Integer</span> <span class="n">count</span> <span class="o">=</span> <span class="n">readCount</span><span class="o">(</span><span class="n">tokens</span><span class="o">[</span><span class="mi">1</span><span class="o">]);</span>
+
+	<span class="k">return</span> <span class="k">new</span> <span class="nf">Order</span><span class="o">(</span><span class="n">menu</span><span class="o">,</span> <span class="n">count</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>이렇게 개별 기능을 처리하는 메서드를 따로 만들어주고, readOrders() 메서드는 개별 메서드를
+실행해주도록 만들었다.</p>
+
+<p>3주차 코드의 경우 모든 검증을 생성자에서 진행했지만,
+4주차 코드에서는 validate 메서드를 모두 분리하여 실행을 마친 후
+정상적인 입력값만 생성자로 넘겨주도록 변경하였다.</p>
+
+<p>예를 들어 <em>스테이크-1,케이크-2,콜라-3</em>이라는 전체 입력(<em>EntireOrder</em>)을 받아,
+각 주문(<em>Order</em>, 스테이크-1)을 파싱하고,
+메뉴 이름(<em>Menu</em>, 스테이크)을 파싱하는 부분(<em>4. 메뉴 이름 검증</em>)을 테스트하려고 한다.</p>
+
+<p><img class="mermaid" src="https://mermaid.ink/svg/eyJjb2RlIjoiY2xhc3NEaWFncmFtXG4lJS1cbmNsYXNzIE1lbnUge1xuPDxpbnRlcmZhY2U-PlxuZ2V0TmFtZSgpXG5nZXRQcmljZSgpXG59XG5jbGFzcyBNYWluZGlzaCB7XG48PGVudW0-Plxu7Iqk7YWM7J207YGsXG7tjIzsiqTtg4Bcbn1cbmNsYXNzIERlc3NlcnQge1xuPDxlbnVtPj5cbuy8gOydtO2BrFxu7JWE7J207Iqk7YGs66a8XG59XG5jbGFzcyBEcmluayB7XG48PGVudW0-Plxu7L2c6528XG7smYDsnbhcbn1cbk1lbnUgPHwtLSBNYWluZGlzaFxuTWVudSA8fC0tIERlc3NlcnRcbk1lbnUgPHwtLSBEcmluayIsIm1lcm1haWQiOm51bGx9"></p>
+
+<p>이런 식으로 클래스를 구성하고, 주어진 문자열과 일치하는 메뉴가 존재하면
+해당하는 Enum을 반환하는 메서드를 만들었다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">public</span> <span class="kd">static</span> <span class="nc">Menu</span> <span class="nf">readMenuName</span><span class="o">(</span><span class="nc">String</span> <span class="n">name</span><span class="o">)</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Stream</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="nc">Maindish</span><span class="o">.</span><span class="na">values</span><span class="o">(),</span> <span class="nc">Dessert</span><span class="o">.</span><span class="na">values</span><span class="o">(),</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">values</span><span class="o">())</span>
+			<span class="o">.</span><span class="na">flatMap</span><span class="o">(</span><span class="nl">Stream:</span><span class="o">:</span><span class="n">of</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">filter</span><span class="o">(</span><span class="n">i</span> <span class="o">-&gt;</span> <span class="n">i</span><span class="o">.</span><span class="na">getName</span><span class="o">().</span><span class="na">equals</span><span class="o">(</span><span class="n">name</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">findFirst</span><span class="o">()</span>
+			<span class="o">.</span><span class="na">orElseThrow</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="k">new</span> <span class="nc">IllegalArgumentException</span><span class="o">(</span><span class="no">MENU_EXCEPTION</span><span class="o">));</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>이제 이 메서드를 테스트하기는 쉽다. <em>메뉴이름-숫자</em> 부분에서 자른 메뉴이름 String을 입력으로 넣고,
+예상하는 객체가 반환되는지 혹은 적절히 예외를 던지는지 확인하면 된다.</p>
+
+<p>readOrders() 메서드의 다른 부분도 같은 방식으로 단위 기능을 만들고, 테스트를 작성하면 된다.</p>
+
+<h3 id="테스트-코드의-중복-제거">테스트 코드의 중복 제거</h3>
+<blockquote>
+  <p>테스트 코드도 코드이고, 리팩토링을 통해 개선해야 한다.
+특히 반복해서 실행하는 부분의 중복을 제거하라.
+<cite>3주차 공통 피드백</cite></p>
+</blockquote>
+
+<p>피드백에서는 중복을 제거하는 방법 중 하나로 <strong>ParameterizedTest</strong>를 소개했고,
+4주차 과제를 진행하면서 이것의 강력함을 맛볼 수 있었다.</p>
+
+<p>3주차 테스트 코드 일부를 소개한다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"중복 번호 확인"</span><span class="o">)</span>
+<span class="nd">@Test</span>
+<span class="kt">void</span> <span class="nf">checkDuplicatedNumbers</span><span class="o">()</span> <span class="o">{</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span> <span class="o">=</span> <span class="nc">List</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">);</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateAnswerLotto</span><span class="o">(</span><span class="n">numbers</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"중복된 번호가 존재합니다."</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>로또 번호로 사용할 숫자를 6개 입력받는데,
+중복 번호를 전달했을 경우 예외를 잘 던지는지 확인하는 테스트이다.
+이 코드에서 다른 번호를 테스트하고 싶다면, 똑같은 코드를 중복해서 넣어야 한다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"중복 번호 확인"</span><span class="o">)</span>
+<span class="nd">@Test</span>
+<span class="kt">void</span> <span class="nf">checkDuplicatedNumbers</span><span class="o">()</span> <span class="o">{</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers</span> <span class="o">=</span> <span class="nc">List</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">1</span><span class="o">,</span> <span class="mi">1</span><span class="o">,</span> <span class="mi">2</span><span class="o">,</span> <span class="mi">3</span><span class="o">,</span> <span class="mi">4</span><span class="o">,</span> <span class="mi">5</span><span class="o">);</span>
+	<span class="nc">List</span><span class="o">&lt;</span><span class="nc">Integer</span><span class="o">&gt;</span> <span class="n">numbers2</span> <span class="o">=</span> <span class="nc">List</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="mi">6</span><span class="o">,</span> <span class="mi">7</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">,</span> <span class="mi">10</span><span class="o">);</span>
+	<span class="c1">// numbers3, numbers4, ...</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateAnswerLotto</span><span class="o">(</span><span class="n">numbers</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"중복된 번호가 존재합니다."</span><span class="o">);</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">LottoGenerator</span><span class="o">.</span><span class="na">generateAnswerLotto</span><span class="o">(</span><span class="n">numbers2</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="s">"중복된 번호가 존재합니다."</span><span class="o">);</span>
+	<span class="c1">// assert number3, number4, ...</span>
+<span class="o">}</span>
+</code></pre></div></div>
+
+<p>Junit의 PamareterizedTest를 활용하면 코드 중복을 크게 줄일 수 있다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"입력 형식이 다른 주문"</span><span class="o">)</span>
+<span class="nd">@ValueSource</span><span class="o">(</span><span class="n">strings</span> <span class="o">=</span> <span class="o">{</span><span class="s">"양송이수프-1-2"</span><span class="o">,</span> <span class="s">"초코케이크 1"</span><span class="o">,</span> <span class="s">"-1"</span><span class="o">,</span> <span class="s">"5-바비큐립"</span><span class="o">,</span> <span class="s">"제로콜라--10"</span><span class="o">,</span> <span class="s">"제로콜라-"</span><span class="o">,</span> <span class="s">"타파스-1,,,"</span><span class="o">})</span>
+<span class="nd">@ParameterizedTest</span>
+<span class="kt">void</span> <span class="nf">illegalFormatOrder</span><span class="o">(</span><span class="nc">String</span> <span class="n">input</span><span class="o">)</span> <span class="o">{</span>
+	<span class="n">assertThatThrownBy</span><span class="o">(()</span> <span class="o">-&gt;</span> <span class="nc">MenuReader</span><span class="o">.</span><span class="na">readSingleOrder</span><span class="o">(</span><span class="n">input</span><span class="o">))</span>
+			<span class="o">.</span><span class="na">isInstanceOf</span><span class="o">(</span><span class="nc">IllegalArgumentException</span><span class="o">.</span><span class="na">class</span><span class="o">)</span>
+			<span class="o">.</span><span class="na">hasMessageContaining</span><span class="o">(</span><span class="no">MENU_EXCEPTION</span><span class="o">);</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p>특히 위에서 정규식을 활용해 입력 형식을 검증하는 부분이 있었는데,
+정규식을 정확히 작성했는지 검증하기 위해서 많은 입력값을 테스트해봐야 한다.
+여기서 중복 코드를 삽입하는 대신, 입력 문자열을 <strong>ValueSource</strong>로 제공하면
+JUnit이 각 파라미터를 자동으로 입력하여 테스트를 실행해준다.
+<img src="/assets/posts/231126-1.png" alt="test-result"></p>
+
+<p><strong>MethodSource</strong>를 활용하면 출력값 역시 확인할 수 있다.
+아래는 readMenuName() 메서드가 맞는 클래스를 반환했는지 확인하는 테스트이다.</p>
+<div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">private</span> <span class="kd">static</span> <span class="nc">Stream</span><span class="o">&lt;</span><span class="nc">Arguments</span><span class="o">&gt;</span> <span class="nf">menuSubclassProvider</span><span class="o">()</span> <span class="o">{</span>
+	<span class="k">return</span> <span class="nc">Stream</span><span class="o">.</span><span class="na">of</span><span class="o">(</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"양송이수프"</span><span class="o">,</span> <span class="nc">Appetizer</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"양송이수프"</span><span class="o">),</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"바비큐립"</span><span class="o">,</span> <span class="nc">Maindish</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"바비큐립"</span><span class="o">),</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"초코케이크"</span><span class="o">,</span> <span class="nc">Dessert</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"초코케이크"</span><span class="o">),</span>
+			<span class="nc">Arguments</span><span class="o">.</span><span class="na">of</span><span class="o">(</span><span class="s">"샴페인"</span><span class="o">,</span> <span class="nc">Drink</span><span class="o">.</span><span class="na">class</span><span class="o">,</span> <span class="s">"샴페인"</span><span class="o">)</span>
+	<span class="o">);</span>
+<span class="o">}</span>
+
+<span class="nd">@DisplayName</span><span class="o">(</span><span class="s">"정상 메뉴"</span><span class="o">)</span>
+<span class="nd">@MethodSource</span><span class="o">(</span><span class="s">"menuSubclassProvider"</span><span class="o">)</span>
+<span class="nd">@ParameterizedTest</span>
+<span class="kt">void</span> <span class="nf">normalMenu</span><span class="o">(</span><span class="nc">String</span> <span class="n">input</span><span class="o">,</span> <span class="nc">Class</span><span class="o">&lt;?</span> <span class="kd">extends</span> <span class="nc">Menu</span><span class="o">&gt;</span> <span class="n">expectedClass</span><span class="o">,</span> <span class="nc">String</span> <span class="n">expectedName</span><span class="o">)</span> <span class="o">{</span>
+	<span class="nc">Menu</span> <span class="n">menu</span> <span class="o">=</span> <span class="nc">MenuReader</span><span class="o">.</span><span class="na">readMenuName</span><span class="o">(</span><span class="n">input</span><span class="o">);</span>
+	<span class="n">assertThat</span><span class="o">(</span><span class="n">expectedClass</span><span class="o">).</span><span class="na">isEqualTo</span><span class="o">(</span><span class="n">menu</span><span class="o">.</span><span class="na">getClass</span><span class="o">());</span>
+	<span class="n">assertThat</span><span class="o">(</span><span class="n">expectedName</span><span class="o">).</span><span class="na">isEqualTo</span><span class="o">(</span><span class="n">menu</span><span class="o">.</span><span class="na">getName</span><span class="o">());</span>
+<span class="o">}</span>
+</code></pre></div></div>
+<p><img src="/assets/posts/231126-2.png" alt="!test-result-2"></p>
+
+<h2 id="마치며">마치며</h2>
+<p>이렇게 4주차에는 잘 분리된 단위 테스트를 만들면서 과제를 진행했는데,
+덕분에 생각지도 못했던 버그를 잡거나 편하게 리팩토링할 수 있었다.</p>
+
+
+    </div>
+
+</article>
+<div class="post-nav">
+<a class="previous" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/2-woowacourse-pre3-factory.html" title="생성자를 숨기는 팩토리 메서드">생성자를 숨기는 팩토리 메서드</a><a class="next" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html" title="클린 코드 작성하기 - 우테코를 마치며">클린 코드 작성하기 - 우테코를 마치며...</a>
+</div>
+    <div class="post-related">
+      <div>Related Articles</div>
+      <ul>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/12/01/woowacourse-finalize.html" title="클린 코드 작성하기 - 우테코를 마치며">클린 코드 작성하기 - 우테코를 마치며</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/1-woowacourse-pre3-composition.html" title="상속과 조합 클래스">상속과 조합 클래스</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/08/2-woowacourse-pre3-factory.html" title="생성자를 숨기는 팩토리 메서드">생성자를 숨기는 팩토리 메서드</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/1-woowacourse-pre3-mvc.html" title="MVC 패턴으로 작성하기">MVC 패턴으로 작성하기</a></li>
+        
+          <li><a class="related" href="/%EC%9A%B0%ED%85%8C%EC%BD%94/2023/11/07/2-woowacourse-pre3-dto.html" title="캡슐화를 돕는 DTO 사용기">캡슐화를 돕는 DTO 사용기</a></li>
+        
+      </ul>
+    </div>
+    <div class="post-comments">
+<div id="utterances-placeholder"></div>
+<script>
+  const utterancesThemeFromDataTheme = () => {
+    const dataTheme = document.documentElement.getAttribute('data-theme');
+    return `github-${dataTheme}`;
+  };
+
+  const setUtterancesTheme = () => {
+    const iframe = document.querySelector('.utterances-frame');
+    if (iframe) {
+      const message = {
+        type: 'set-theme',
+        theme: utterancesThemeFromDataTheme()
+      };
+      iframe.contentWindow.postMessage(message, 'https://utteranc.es');
+    }
+  }
+
+  // dynamic change
+  const observer = new MutationObserver((mutationsList, observer) => {
+    for (let mutation of mutationsList) {
+      if (mutation.type === 'attributes' && mutation.attributeName === 'data-theme') {
+        setUtterancesTheme();
+      }
+    }
+  });
+  observer.observe(document.documentElement, { attributes: true, childList: false, subtree: false });
+
+  let utterancesScript = document.createElement('script');
+  utterancesScript.async = true;
+  utterancesScript.src = 'https://utteranc.es/client.js';
+  utterancesScript.crossOrigin = 'anonymous';
+  utterancesScript.setAttribute('issue-term', 'title');
+  utterancesScript.setAttribute('label', '💬');
+  utterancesScript.setAttribute('repo', 'metishonora/metishonora');
+  utterancesScript.setAttribute('theme', utterancesThemeFromDataTheme());
+
+  const placeholder = document.getElementById('utterances-placeholder');
+  placeholder.parentNode.replaceChild(utterancesScript, placeholder);
+</script>
+</div></section>
+</div>
+
+
+  </section>
+  <section class="sidebar" style="margin-left: 15px;">
+    <!-- Get sidebar items --><style type="text/css" media="screen">
+.post-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+</style>
+
+<div class="post-menu">
+  <div class="post-menu-title">목차</div>
+  <div class="post-menu-content"></div>
+</div>
+
+<script>
+  function generateContent() {
+    var menu = document.querySelector(".post-menu");
+    var menuContent =  menu.querySelector(".post-menu-content");
+    var headings = document.querySelector(".post-content").querySelectorAll("h2, h3, h4, h5, h6");
+
+    // Hide menu when no headings
+    if (headings.length === 0) {
+      return menu.style.display = "none";
+    }
+
+    // Generate post menu
+    var menuHTML = '';
+    for (var i = 0; i < headings.length; i++) {
+      var h = headings[i];
+      menuHTML += (
+        '<li class="h-' + h.tagName.toLowerCase() + '">'
+        + '<a href="#h-' + h.getAttribute('id') + '">' + h.textContent + '</a></li>');
+    }
+
+    menuContent.innerHTML = '<ul>' + menuHTML + '</ul>';
+
+    // The header element
+    var header = document.querySelector('header.site-header');
+
+    function doMenuCollapse(index, over_items) {
+      var items = menuContent.firstChild.children;
+
+      if (over_items == undefined) {
+        over_items = 20;
+      }
+
+      if (items.length < over_items) {
+        return;
+      }
+
+      var activeItem = items[index];
+      var beginItem = activeItem
+      var endItem = activeItem
+      var beginIndex = index;
+      var endIndex = index + 1;
+      while (beginIndex >= 0
+        && !items[beginIndex].classList.contains('h-h2')) {
+        beginIndex -= 1;
+      }
+      while (endIndex < items.length
+        && !items[endIndex].classList.contains('h-h2')) {
+        endIndex += 1;
+      }
+      for (var i = 0; i < beginIndex; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+      for (var i = beginIndex + 1; i < endIndex; i++) {
+        item = items[i]
+        // if (!item.classList.contains('h-h2')) {
+          item.style.display = '';
+        // }
+      }
+      for (var i = endIndex; i < items.length; i++) {
+        item = items[i]
+        if (!item.classList.contains('h-h2')) {
+          item.style.display = 'none';
+        }
+      }
+    }
+
+    // Init menu collapsed
+    doMenuCollapse(-1);
+
+    // Active the menu item
+    window.addEventListener('scroll', function (event) {
+      var lastActive = menuContent.querySelector('.active');
+      var changed = true;
+      var activeIndex = -1;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var h = headings[i];
+        var headingRect = h.getBoundingClientRect();
+        var headerRect = header.getBoundingClientRect();
+        var headerTop = Math.floor(headerRect.top);
+        var headerHeight = Math.floor(headerRect.height);
+        var headerHeight = headerTop + headerHeight + 20;
+        if (headingRect.top <= headerHeight) {
+          var id = 'h-' + h.getAttribute('id');
+          var a = menuContent.querySelector('a[href="#' + id  + '"]');
+          var curActive = a.parentNode;
+          if (curActive) {
+            curActive.classList.add('active');
+            activeIndex = i;
+          }
+          if (lastActive == curActive) {
+            changed = false;
+          }
+          break;
+        }
+      }
+      if (changed) {
+        if (lastActive) {
+          lastActive.classList.remove('active');
+        }
+        doMenuCollapse(activeIndex);
+      }
+      event.preventDefault();
+    });
+  }
+  generateContent();
+</script>
+</section>
+</div>
+
+      </div>
+    </main><footer class="site-footer h-card">
+  <data class="u-url" href="/"></data>
+
+  <div class="wrapper">
+    <div class="site-footer-inner">
+<div>
+<span class="copyleft">©</span> 2024 S G Kim</div>
+      <div>Powered by <a title="Jekyll is a simple, blog-aware, static site
+      generator." href="https://jekyllrb.com/">Jekyll</a> &amp; <a title="Yat, yet
+      another theme." href="https://github.com/jeffreytse/jekyll-theme-yat">Yat Theme</a>.</div>
+      <div class="footer-col rss-subscribe">Subscribe <a href="/feed.xml">via RSS</a>
+</div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
